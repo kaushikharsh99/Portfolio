@@ -1,0 +1,32 @@
+
+> project-by-gemini@0.0.0 build
+> vite build
+
+vite v7.2.6 building client environment for production...
+transforming...
+Error: Cannot apply unknown utility class `bg-huly-bg`
+    at onInvalidCandidate (/home/harsh/coding/project-by-gemini/node_modules/tailwindcss/dist/lib.js:21:1511)
+    at Te (/home/harsh/coding/project-by-gemini/node_modules/tailwindcss/dist/lib.js:16:36364)
+    at /home/harsh/coding/project-by-gemini/node_modules/tailwindcss/dist/lib.js:21:355
+    at Tr (/home/harsh/coding/project-by-gemini/node_modules/tailwindcss/dist/lib.js:3:1718)
+    at _ (/home/harsh/coding/project-by-gemini/node_modules/tailwindcss/dist/lib.js:3:1377)
+    at Se (/home/harsh/coding/project-by-gemini/node_modules/tailwindcss/dist/lib.js:21:172)
+    at ln (/home/harsh/coding/project-by-gemini/node_modules/tailwindcss/dist/lib.js:38:294)
+    at async sn (/home/harsh/coding/project-by-gemini/node_modules/tailwindcss/dist/lib.js:38:631)
+    at async Qr (/home/harsh/coding/project-by-gemini/node_modules/@tailwindcss/node/dist/index.js:10:3385)
+    at async I (/home/harsh/coding/project-by-gemini/node_modules/@tailwindcss/postcss/dist/index.js:10:3978)
+✓ 111 modules transformed.
+✗ Build failed in 715ms
+error during build:
+[vite:css] [postcss] tailwindcss: /home/harsh/coding/project-by-gemini/src/index.css:1:1: Cannot apply unknown utility class `bg-huly-bg`
+file: /home/harsh/coding/project-by-gemini/src/index.css:1:0
+    at Input.error (/home/harsh/coding/project-by-gemini/node_modules/postcss/lib/input.js:135:16)
+    at Root.error (/home/harsh/coding/project-by-gemini/node_modules/postcss/lib/node.js:146:32)
+    at Object.Once (/home/harsh/coding/project-by-gemini/node_modules/@tailwindcss/postcss/dist/index.js:10:6912)
+    at async LazyResult.runAsync (/home/harsh/coding/project-by-gemini/node_modules/postcss/lib/lazy-result.js:293:11)
+    at async runPostCSS (file:///home/harsh/coding/project-by-gemini/node_modules/vite/dist/node/chunks/config.js:30138:19)
+    at async compilePostCSS (file:///home/harsh/coding/project-by-gemini/node_modules/vite/dist/node/chunks/config.js:30122:6)
+    at async compileCSS (file:///home/harsh/coding/project-by-gemini/node_modules/vite/dist/node/chunks/config.js:30052:26)
+    at async Object.handler (file:///home/harsh/coding/project-by-gemini/node_modules/vite/dist/node/chunks/config.js:29585:54)
+    at async transform (file:///home/harsh/coding/project-by-gemini/node_modules/rollup/dist/es/shared/node-entry.js:21163:16)
+    at async ModuleLoader.addModuleSource (file:///home/harsh/coding/project-by-gemini/node_modules/rollup/dist/es/shared/node-entry.js:21377:36)
