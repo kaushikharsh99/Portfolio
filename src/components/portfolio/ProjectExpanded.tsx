@@ -98,6 +98,8 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
     }
   };
 
+  const isResearchStyle = project.id === "tinystories-17m" || project.id === "indian-legal-llm";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-6 bg-black/70 backdrop-blur-md animate-in fade-in-0 duration-300">
       
@@ -188,7 +190,7 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
 
             <div className="relative z-10 max-w-3xl">
               <span className="text-mono text-[10px] uppercase tracking-[0.2em] text-accent">
-                {project.id === "tinystories-17m" ? "Research Publication" : "System Overview"}
+                {isResearchStyle ? "Research Publication" : "System Overview"}
               </span>
               <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-5xl text-foreground leading-[1.1]">
                 {project.name}
@@ -205,7 +207,7 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
           {/* KEY METRICS GRID */}
           <section className="space-y-4">
             <h3 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-              {project.id === "tinystories-17m" ? "Core Model Specifications" : "Performance Indicators & Metrics"}
+              {isResearchStyle ? "Core Model Specifications" : "Performance Indicators & Metrics"}
             </h3>
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
               {project.metrics.map((metric) => (
@@ -318,32 +320,94 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
                 </div>
               </section>
 
-              {/* MODEL ARCHITECTURE SECTION */}
-              {project.id === "tinystories-17m" ? (
-                <section className="space-y-4">
+              {/* INTERACTIVE TIMELINE (For Indian Legal LLM SFT) */}
+              {project.timeline && (
+                <section className="space-y-4 pt-2">
                   <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                    Model Dimensions & Architecture Spec
+                    Project Research Timeline & Journey
                   </h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {[
-                      { title: "Model Class", value: "Decoder-only Transformer", desc: "GPT-style causal architecture" },
-                      { title: "Total Parameters", value: "17,234,304", desc: "Fully trained from scratch" },
-                      { title: "Transformer Layers", value: "8 Layers", desc: "Depth dimension blocks" },
-                      { title: "Hidden Size (d_model)", value: "384", desc: "Attention feature channels" },
-                      { title: "Attention Heads", value: "6 Heads", desc: "64-dimension per attention head" },
-                      { title: "MLP Expansion (d_ff)", value: "1024", desc: "SwiGLU gated projection size" },
-                      { title: "Position Encodings", value: "RoPE", desc: "Rotary Position Embeddings" },
-                      { title: "Normalization", value: "RMSNorm", desc: "Pre-Layer normalization paths" },
-                      { title: "Attention Type", value: "Flash SDPA", desc: "Scale Dot-Product compatible" },
-                    ].map((card) => (
-                      <div key={card.title} className="p-4 rounded-lg border border-border bg-surface-2/10 flex flex-col justify-between min-h-[90px]">
-                        <span className="font-mono text-[9px] uppercase tracking-wider text-subtle">{card.title}</span>
-                        <span className="text-sm font-semibold text-foreground mt-1.5">{card.value}</span>
-                        <span className="text-[10px] text-muted-foreground mt-1">{card.desc}</span>
+                  <div className="relative border-l border-border-strong pl-6 ml-3 space-y-6 py-2">
+                    {project.timeline.map((node) => (
+                      <div key={node.title} className="relative group">
+                        {/* Timeline Dot */}
+                        <span className={`absolute -left-[31px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-background transition-transform ${
+                          node.status === "completed" 
+                            ? "bg-green-500" 
+                            : node.status === "current" 
+                              ? "bg-accent animate-pulse" 
+                              : "bg-surface border-border-strong"
+                        }`} />
+                        <div>
+                          <h5 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                            {node.title}
+                            {node.status === "current" && (
+                              <span className="text-[9px] font-mono bg-accent/10 border border-accent/20 px-1.5 py-0.5 rounded text-accent font-semibold uppercase select-none">
+                                Current Active
+                              </span>
+                            )}
+                          </h5>
+                          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{node.description}</p>
+                        </div>
                       </div>
                     ))}
                   </div>
                 </section>
+              )}
+
+              {/* MODEL ARCHITECTURE SECTION */}
+              {isResearchStyle ? (
+                project.id === "tinystories-17m" ? (
+                  <section className="space-y-4">
+                    <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                      Model Dimensions & Architecture Spec
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {[
+                        { title: "Model Class", value: "Decoder-only Transformer", desc: "GPT-style causal architecture" },
+                        { title: "Total Parameters", value: "17,234,304", desc: "Fully trained from scratch" },
+                        { title: "Transformer Layers", value: "8 Layers", desc: "Depth dimension blocks" },
+                        { title: "Hidden Size (d_model)", value: "384", desc: "Attention feature channels" },
+                        { title: "Attention Heads", value: "6 Heads", desc: "64-dimension per attention head" },
+                        { title: "MLP Expansion (d_ff)", value: "1024", desc: "SwiGLU gated projection size" },
+                        { title: "Position Encodings", value: "RoPE", desc: "Rotary Position Embeddings" },
+                        { title: "Normalization", value: "RMSNorm", desc: "Pre-Layer normalization paths" },
+                        { title: "Attention Type", value: "Flash SDPA", desc: "Scale Dot-Product compatible" },
+                      ].map((card) => (
+                        <div key={card.title} className="p-4 rounded-lg border border-border bg-surface-2/10 flex flex-col justify-between min-h-[90px]">
+                          <span className="font-mono text-[9px] uppercase tracking-wider text-subtle">{card.title}</span>
+                          <span className="text-sm font-semibold text-foreground mt-1.5">{card.value}</span>
+                          <span className="text-[10px] text-muted-foreground mt-1">{card.desc}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                ) : (
+                  project.modelVersions && (
+                    <section className="space-y-4">
+                      <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                        Model Iterations & Version Matrix
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {project.modelVersions.map((ver) => (
+                          <div key={ver.version} className="card-panel p-5 bg-surface-2/20 border border-border">
+                            <div className="flex items-center justify-between border-b border-hairline pb-2 mb-3">
+                              <span className="font-semibold text-foreground text-sm">{ver.version}</span>
+                              <span className="chip text-[10px]">{ver.format}</span>
+                            </div>
+                            <ul className="space-y-2 text-xs text-muted-foreground font-mono">
+                              <li><span className="text-subtle">Base Model:</span> {ver.baseModel} ({ver.size})</li>
+                              <li><span className="text-subtle">Dataset:</span> {ver.dataset}</li>
+                            </ul>
+                            <p className="text-xs text-muted-foreground mt-3 leading-relaxed border-t border-hairline pt-3">
+                              <span className="text-subtle font-mono block text-[10px] uppercase mb-1">Iteration Purpose:</span>
+                              {ver.reason}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )
+                )
               ) : (
                 <section className="space-y-4">
                   <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
@@ -373,7 +437,7 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
                 </section>
               )}
 
-              {/* Training Flow (For TinyStories-17M) */}
+              {/* Training Flow (For TinyStories-17M and Indian Legal LLM SFT) */}
               {project.id === "tinystories-17m" && (
                 <section className="space-y-4">
                   <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
@@ -396,6 +460,39 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
                           </span>
                         )}
                         {idx < 6 && (
+                          <span className="block md:hidden absolute left-[50%] -bottom-4 translate-x-[-50%] text-subtle text-[10px] z-10 font-bold">
+                            ▼
+                          </span>
+                        )}
+                        <span className="text-xs font-semibold text-accent">{item.step}</span>
+                        <p className="text-[9px] text-muted-foreground mt-2 leading-relaxed">{item.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {project.id === "indian-legal-llm" && (
+                <section className="space-y-4">
+                  <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                    Iterative Post-Training & SFT Pipeline
+                  </h4>
+                  <div className="flex flex-col md:flex-row items-stretch justify-between gap-4 p-4 rounded-lg border border-border bg-surface-2/15 overflow-x-auto">
+                    {[
+                      { step: "1. Dataset Prep", desc: "Compile Indian legal provisions corpus (v2/v3)" },
+                      { step: "2. Formatter", desc: "Template strict instruction-response JSONL patterns" },
+                      { step: "3. Supervised SFT", desc: "BF16 instruction tuning on Qwen (0.5B/1.7B)" },
+                      { step: "4. Evaluation", desc: "Perplexity check + qualitative Q&A audit" },
+                      { step: "5. Failure Analysis", desc: "Verify statutory grounding & identify hallucinations" },
+                      { step: "6. Refinement", desc: "Re-edit dataset templates to prune verbosity bias" },
+                    ].map((item, idx) => (
+                      <div key={item.step} className="flex-1 min-w-[120px] flex flex-col justify-between p-3 rounded border border-border bg-background relative text-center">
+                        {idx < 5 && (
+                          <span className="hidden md:block absolute -right-3.5 top-[40%] translate-y-[-50%] text-subtle text-xs z-10 font-bold">
+                            ➔
+                          </span>
+                        )}
+                        {idx < 5 && (
                           <span className="block md:hidden absolute left-[50%] -bottom-4 translate-x-[-50%] text-subtle text-[10px] z-10 font-bold">
                             ▼
                           </span>
@@ -475,7 +572,7 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
                 </section>
               )}
 
-              {/* Training Configurations (For TinyStories-17M) */}
+              {/* Training Configurations (For TinyStories-17M and Indian Legal LLM) */}
               {project.trainingConfig && (
                 <section className="space-y-4">
                   <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
@@ -648,8 +745,115 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
                 </div>
               )}
 
+              {/* Research Evaluation & Iterations (For Indian Legal LLM SFT) */}
+              {project.id === "indian-legal-llm" && (
+                <div className="space-y-12">
+                  
+                  {/* Before vs After SFT */}
+                  {project.beforeAfter && (
+                    <section className="space-y-4">
+                      <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                        Alignment Quality: Before vs After SFT
+                      </h4>
+                      <div className="space-y-4">
+                        {project.beforeAfter.map((comp, idx) => (
+                          <div key={idx} className="rounded-lg border border-border bg-surface overflow-hidden">
+                            <div className="border-b border-border bg-surface-2 px-4 py-2 flex items-center justify-between select-none">
+                              <span className="font-mono text-[10px] text-accent font-semibold">Legal Query {idx + 1}</span>
+                            </div>
+                            <div className="p-4 space-y-4">
+                              <div className="bg-background/40 p-3 rounded border border-hairline font-mono text-xs text-muted-foreground">
+                                <span className="text-accent-violet select-none">Prompt: </span>
+                                {comp.query}
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="p-3.5 rounded bg-destructive/5 border border-destructive/20 text-xs">
+                                  <span className="font-mono text-[10px] uppercase tracking-wider text-destructive font-semibold block mb-1">Base Model Output:</span>
+                                  <p className="text-muted-foreground leading-relaxed italic">"{comp.before}"</p>
+                                </div>
+                                <div className="p-3.5 rounded bg-green-500/5 border border-green-500/20 text-xs">
+                                  <span className="font-mono text-[10px] uppercase tracking-wider text-green-500 font-semibold block mb-1">Fine-tuned Model (SFT):</span>
+                                  <p className="text-foreground leading-relaxed font-normal">"{comp.after}"</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* Observed Improvements */}
+                  {project.observedImprovements && (
+                    <section className="space-y-4">
+                      <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                        Observed Style Improvements
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {project.observedImprovements.map((imp) => (
+                          <div key={imp} className="flex gap-2.5 p-3 rounded-lg border border-border bg-green-500/5 text-xs text-muted-foreground">
+                            <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                            <span>{imp}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* What Went Wrong / Failures */}
+                  {project.whatWentWrong && (
+                    <section className="space-y-4">
+                      <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                        Failure Analysis: Factual Limitations
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        {project.whatWentWrong.map((fail) => (
+                          <div key={fail.issue} className="p-5 rounded-lg border border-border bg-destructive/5 flex flex-col justify-between">
+                            <div>
+                              <h5 className="text-xs font-semibold text-foreground uppercase tracking-wider font-mono text-destructive">{fail.issue}</h5>
+                              <p className="text-xs text-muted-foreground mt-3 leading-relaxed">{fail.details}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* Key Takeaway Quote */}
+                  {project.keyInsight && (
+                    <section className="p-6 sm:p-8 rounded-lg border border-border bg-surface-2/30 text-center space-y-3 relative overflow-hidden select-none">
+                      <div className="absolute top-2 left-4 text-6xl text-accent font-serif opacity-15">“</div>
+                      <blockquote className="text-lg sm:text-xl font-light text-foreground tracking-tight max-w-xl mx-auto italic">
+                        "{project.keyInsight}"
+                      </blockquote>
+                      <cite className="font-mono text-[9px] uppercase tracking-wider text-subtle block">
+                        Central Takeaway & Lesson
+                      </cite>
+                    </section>
+                  )}
+
+                  {/* Current Research Direction */}
+                  {project.currentDirection && (
+                    <section className="space-y-4">
+                      <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                        Current Research Direction (Dataset Refinements)
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {project.currentDirection.map((dir, idx) => (
+                          <div key={idx} className="flex gap-2.5 p-3 rounded-lg border border-border bg-surface-2/10 text-xs text-muted-foreground">
+                            <span className="text-accent font-mono font-bold select-none">➔</span>
+                            <span>{dir}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                </div>
+              )}
+
               {/* Features & Challenges (For systems engineering projects) */}
-              {project.id !== "tinystories-17m" && (
+              {!isResearchStyle && (
                 <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div>
                     <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
@@ -778,7 +982,7 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
                     <span>View Repository</span>
                   </a>
 
-                  {project.huggingfaceUrl && (
+                  {project.huggingfaceUrl && project.id !== "indian-legal-llm" && (
                     <a
                       href={project.huggingfaceUrl}
                       target="_blank"
@@ -788,6 +992,38 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
                       <Sparkles className="h-4 w-4 text-accent" />
                       <span>View Model (HF)</span>
                     </a>
+                  )}
+
+                  {project.id === "indian-legal-llm" && (
+                    <>
+                      <a
+                        href="https://huggingface.co/kaushik-harsh-99"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex h-9 items-center justify-center gap-2 rounded-md border border-border bg-surface text-foreground text-sm font-medium hover:bg-elevated transition-colors"
+                      >
+                        <Sparkles className="h-4 w-4 text-accent" />
+                        <span>View Model V1 (0.5B)</span>
+                      </a>
+                      <a
+                        href="https://huggingface.co/kaushik-harsh-99"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex h-9 items-center justify-center gap-2 rounded-md border border-border bg-surface text-foreground text-sm font-medium hover:bg-elevated transition-colors"
+                      >
+                        <Sparkles className="h-4 w-4 text-accent-violet" />
+                        <span>View Model V2 (1.7B)</span>
+                      </a>
+                      <a
+                        href="https://huggingface.co/datasets/kaushik-harsh-99/Indian-legal-data-v3"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex h-9 items-center justify-center gap-2 rounded-md border border-border bg-surface text-foreground text-sm font-medium hover:bg-elevated transition-colors"
+                      >
+                        <ChevronRight className="h-4 w-4 text-accent" />
+                        <span>Legal Dataset V3</span>
+                      </a>
+                    </>
                   )}
 
                   {project.id === "tinystories-17m" && (

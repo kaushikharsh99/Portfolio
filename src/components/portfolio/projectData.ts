@@ -23,6 +23,18 @@ export interface ModelComparison {
   purpose: string;
 }
 
+export interface TimelineNode {
+  title: string;
+  description: string;
+  status: "completed" | "current" | "pending";
+}
+
+export interface BeforeAfterExample {
+  query: string;
+  before: string;
+  after: string;
+}
+
 export interface ProjectDetail {
   id: string;
   name: string;
@@ -68,6 +80,15 @@ export interface ProjectDetail {
 
   // Spam Detection Specific ML Fields
   modelComparison?: ModelComparison[];
+
+  // Indian Legal LLM Specific Research Fields
+  timeline?: TimelineNode[];
+  modelVersions?: { version: string; baseModel: string; size: string; dataset: string; format: string; reason: string }[];
+  beforeAfter?: BeforeAfterExample[];
+  observedImprovements?: string[];
+  whatWentWrong?: { issue: string; details: string }[];
+  keyInsight?: string;
+  currentDirection?: string[];
 }
 
 export const projectsData: ProjectDetail[] = [
@@ -362,14 +383,14 @@ class SwiGLU(nn.Module):
                             ▼
            ┌─────────────────────────────────┐
            │        TEACHER MODEL (80M)      │ (Embeddings: 512d)
-           └────────────────┬────────────────┘
-                            │ (Soft Logits)
-                            ▼
+           └──────────────────┬──────────────┘
+                              │ (Soft Logits)
+                              ▼
            ┌─────────────────────────────────┐
            │    KNOWLEDGE DISTILLATION       │ (KL Divergence Loss)
            │      [Temperature: 3.0]         │
-           └────────────────┬────────────────┘
-                            ▼
+           └──────────────────┬──────────────┘
+                              ▼
            ┌─────────────────────────────────┐
            │        STUDENT MODEL (2M)       │ (Embeddings: 128d + Attention)
            └─────────────────────────────────┘`,
@@ -461,6 +482,154 @@ class DistillationLoss(nn.Module):
       { name: "Support Vector Machine (SVM)", accuracy: "95.40%", parameters: "~20K (Vocabulary weight vectors)", purpose: "Margin-based baseline" },
       { name: "Neural Teacher", accuracy: "98.38%", parameters: "80,000,000 (Residual network)", purpose: "Maximum accuracy checkpoint" },
       { name: "Distilled Student", accuracy: "98.12%", parameters: "2,000,000 (Self-attention + 128d embed)", purpose: "Lightweight, low-latency deployment" }
+    ]
+  },
+  {
+    id: "indian-legal-llm",
+    name: "Indian Legal LLM",
+    status: "Research",
+    tagline: "Domain Adaptation of Open Language Models for Indian Legal Reasoning",
+    description:
+      "A series of domain-specific fine-tuning experiments exploring how high-quality legal instruction datasets improve small language models for Indian legal question answering, structured reasoning, and long-form explanation.",
+    stack: ["PyTorch", "Transformers", "GGUF", "Hugging Face", "Python"],
+    achievements: [
+      "Domain adaptation experiments tuning Qwen models for legal reasoning",
+      "Assembled custom Indian Legal Dataset V3 with over 171K+ samples",
+      "Compiled GGUF weights for local inference, debugging, and experimentation",
+    ],
+    githubUrl: "https://github.com/kaushikharsh99",
+    huggingfaceUrl: "https://huggingface.co/kaushik-harsh-99",
+    featured: true,
+    terminalLog: `$ ./llama-cli -m qwen3-1.7b-legal.gguf -p "Explain Section 420 IPC"
+[init] loaded model qwen3-1.7b-legal.gguf
+[eval] reasoning paths aligned with statutory provisions...
+[output] Section 420 IPC deals with cheating and dishonestly inducing delivery of property...`,
+    motivation:
+      "Teaching compact language models domain-specific legal reasoning is highly challenging. General-purpose baseline models excel at broad instruction following but fall short on statutory precision, legal formatting styles, and jurisdictional nuances. I started this iterative research project to investigate how small language models (under 2B parameters) adapt when exposed to dense, structured Indian legal instruction sets, observing how dataset quality drives reasoning consistency.",
+    problemStatement:
+      "Standard LLMs produce vague, generic responses when queried about Indian statutory codes, civil litigation, or judicial procedures. Alternatively, increasing parameter scale to resolve domain gaps increases hardware demands. We need to explore whether post-training domain adaptation can align a 0.5B or 1.7B parameter model to provide coherent legal summaries, and understand what data factors prevent hallucinations.",
+    architectureDesc:
+      "This project focuses on supervised fine-tuning (SFT) over two generations. V1 trained a Qwen 2.5 (0.5B) model on Dataset V2 (~171K samples). Based on failure analysis (hallucinated implications, unsupported conclusions), V2 shifted to Qwen 3 (1.7B) trained on Dataset V3 (~194k samples). Model checkpoints are quantized to GGUF to support local execution and fast debugging runs.",
+    architectureDiagram: `┌────────────────────────────────────────────────────────┐
+│               RAW INDIAN LEGAL ARCHIVES                │
+└──────────────────────────┬─────────────────────────────┘
+                           ▼
+             ┌───────────────────────────┐
+             │    Preprocessing & OCR    │ (Cleaning & Normalization)
+             └─────────────┬─────────────┘
+                           ▼
+             ┌───────────────────────────┐
+             │  Instruction Builder (SFT)│ (Formatter & Tokenizer)
+             └─────────────┬─────────────┘
+                           ▼
+             ┌───────────────────────────┐
+             │   Qwen SFT Fine-Tuning    │ (BF16 Tensor Parallelism)
+             └───────┬───────────┬───────┘
+                     │           │
+                     ▼           ▼
+               [ V1 Model ] [ V2 Model ]
+                 (0.5B)       (1.7B)`,
+    technicalImplementation:
+      "I wrote the SFT pre-training and alignment pipeline in PyTorch. The training sequences are structured as strict instruction-response JSONL packages. To stabilize the learning rates under high initial loss values, I configured AdamW optimization alongside a cosine learning rate scheduler. Evaluation was run continuously on validation sets using validation loss analysis and qualitative comparison runs.",
+    keyFeatures: [
+      "Instruction-tuned legal Q&A capability focused on Indian Penal Code (IPC)",
+      "Structured formatting parser aligning outputs with statutory sections",
+      "Model weights exported to GGUF format for local edge execution",
+      "Iterative training pipeline evaluating dataset bias over multiple versions",
+      "Drafting templates collection containing complain, notice, and petition structures",
+      "Cleaned, deduplicated legal corpora covering civil, criminal, and constitutional laws",
+    ],
+    challenges:
+      "During V1 evaluation, although the model adopted legal terminology successfully, it frequently hallucinated interpretations and added speculative operational conclusions not backed by the statutory text.",
+    solutions:
+      "I restructured the Dataset V3 target outputs to follow a shorter, denser summary format (Section Summary ➔ Key Provision ➔ Brief Explanation ➔ Short Conclusion) rather than long essay-style templates, forcing the model to stay close to facts.",
+    metrics: [
+      { value: "2 Models", label: "Versions Trained" },
+      { value: "171K+", label: "Legal Instructions" },
+      { value: "1.7B", label: "Max Parameters" },
+      { value: "GGUF", label: "Deployment Format" },
+    ],
+    inspirations: [
+      { title: "Qwen LLM Technical Report", link: "https://arxiv.org/abs/2412.15115" },
+      { title: "Indian Penal Code, 1860 Statute Records", link: "https://www.indiacode.nic.in/" },
+    ],
+    futureWork:
+      "Integrate Retrieval-Augmented Generation (RAG) to enforce strict document-grounded context verification, expand drafting templates, and run evaluations against legal benchmarks.",
+    codeSnippet: {
+      language: "python",
+      filename: "sft_train.py",
+      code: `import torch
+from transformers import TrainingArguments, Trainer
+
+# Configure Supervised Fine-Tuning args
+training_args = TrainingArguments(
+    output_dir="./legal_model_checkpoints",
+    learning_rate=2e-5,
+    per_device_train_batch_size=4,
+    gradient_accumulation_steps=8,
+    num_train_epochs=3,
+    weight_decay=0.01,
+    warmup_ratio=0.03,
+    lr_scheduler_type="cosine",
+    bf16=True,
+    logging_steps=10,
+    save_strategy="epoch",
+    evaluation_strategy="steps",
+    eval_steps=100
+)
+
+# Trainer instantiation mapping custom legal data collator
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=tokenized_legal_dataset["train"],
+    eval_dataset=tokenized_legal_dataset["validation"],
+    data_collator=data_collator
+)`
+    },
+    timeline: [
+      { title: "Dataset V2", description: "Assembled initial ~171K samples focusing on statutory definitions and Q&A.", status: "completed" },
+      { title: "Qwen 2.5 Fine-tuning", description: "Supervised fine-tuning of Qwen 2.5 (0.5B) model over 3 epochs.", status: "completed" },
+      { title: "Evaluation Checks", description: "Noticed clear style improvements but identified severe hallucination issues.", status: "completed" },
+      { title: "Dataset Analysis", description: "Traced factual drift back to overly verbose, essay-style targets in V2.", status: "completed" },
+      { title: "Dataset V3", description: "Redesigned dataset to include drafting templates and brief, grounded provision summaries.", status: "completed" },
+      { title: "Qwen 3 Fine-tuning", description: "Fine-tuned Qwen 3 (1.7B) using the refined V3 dataset.", status: "completed" },
+      { title: "Current Research", description: "Developing strict source-faithful evaluation loops and fact-grounding checks.", status: "current" },
+    ],
+    modelVersions: [
+      { version: "Version 1", baseModel: "Qwen 2.5", size: "0.5B parameters", dataset: "Indian Legal Dataset V2", format: "GGUF", reason: "Establish baseline feasibility on highly compressed architecture." },
+      { version: "Version 2", baseModel: "Qwen 3", size: "1.7B parameters", dataset: "Indian Legal Dataset V3", format: "GGUF", reason: "Scale capacity and apply refined, shorter, grounded target data structures." }
+    ],
+    beforeAfter: [
+      {
+        query: "What should I do if my employer refuses to pay my salary?",
+        before: "You can consult a lawyer. They will give you advice on your office work and tell you what to write to them. Or you can complain to the police.",
+        after: "Under Indian law, you have multiple legal remedies: 1. Issue a formal demand notice to your employer. 2. File a complaint before the Labour Commissioner under the Payment of Wages Act. 3. If applicable, approach the Labour Court for recovery of unpaid dues."
+      },
+      {
+        query: "What is Section 420 IPC?",
+        before: "Section 420 is a rule in the code. It is about money problems and when someone gets hurt. It is a crime.",
+        after: "Section 420 of the Indian Penal Code (IPC) deals with cheating and dishonestly inducing delivery of property. It is a cognizable and non-bailable offense, punishable with imprisonment of up to 7 years along with a fine."
+      }
+    ],
+    observedImprovements: [
+      "Structured formatting using numbered lists and clear sections",
+      "Precise statutory terminology (e.g., cognizable, non-bailable, statutory remedies)",
+      "Improved readability and readability flow across long-form answers",
+      "Drastic reduction in vague or generic advice templates",
+      "Better structural coherence during drafting instructions"
+    ],
+    whatWentWrong: [
+      { issue: "Hallucinated Statutory Interpretations", details: "The model occasionally generated plausible-sounding legal statements or administrative summaries that were not backed by the statutory wording." },
+      { issue: "Weak Source Grounding", details: "Outputs frequently over-interpreted provision scopes, adding operational implications or policy-level explanations beyond the source text." },
+      { issue: "Speculative Claims", details: "Long essay-style targets trained the model to write broad significance paragraphs, leading to legally incorrect details." }
+    ],
+    keyInsight: "The biggest limitation wasn't the model. It was the dataset.",
+    currentDirection: [
+      "Transitioning dataset targets from long essay-style text to concise, structured summary blocks",
+      "Introducing strict source-faithful templates separating legal codes from operational summaries",
+      "Reducing speculative and interpretive phrases during SFT dataset preprocessing",
+      "Establishing strict validation metrics targeting factual alignment over styling accuracy"
     ]
   }
 ];
