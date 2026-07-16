@@ -52,17 +52,17 @@ export function Hero() {
             <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
           </a>
           <a
-            href="https://github.com/"
+            href="https://github.com/kaushikharsh99"
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-md border border-border-strong px-4 py-2.5 text-sm text-foreground transition-colors hover:bg-elevated"
           >
             GitHub
           </a>
           <a
-            href="https://huggingface.co/"
+            href="https://huggingface.co/kaushik-harsh-99"
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-md border border-border-strong px-4 py-2.5 text-sm text-foreground transition-colors hover:bg-elevated"
           >
             Hugging Face

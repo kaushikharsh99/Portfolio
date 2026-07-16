@@ -2,10 +2,10 @@ import { Reveal } from "./Reveal";
 import { useResumeModal } from "./ResumeModalContext";
 
 const links = [
-  { label: "Email", value: "harsh@example.com", href: "mailto:harsh@example.com" },
-  { label: "GitHub", value: "github.com/harshkaushik", href: "https://github.com/" },
-  { label: "Hugging Face", value: "huggingface.co/harshkaushik", href: "https://huggingface.co/" },
-  { label: "LinkedIn", value: "linkedin.com/in/harshkaushik", href: "https://linkedin.com/" },
+  { label: "Email", value: "harshkaushik11000@gmail.com", href: "mailto:harshkaushik11000@gmail.com" },
+  { label: "GitHub", value: "github.com/kaushikharsh99", href: "https://github.com/kaushikharsh99" },
+  { label: "Hugging Face", value: "huggingface.co/kaushik-harsh-99", href: "https://huggingface.co/kaushik-harsh-99" },
+  { label: "LinkedIn", value: "linkedin.com/in/harsh-kaushik-95920b379", href: "https://www.linkedin.com/in/harsh-kaushik-95920b379/" },
   { label: "Resume", value: "Harsh_Kaushik_Resume.pdf", href: "#" },
 ];
 
@@ -29,10 +29,13 @@ export function Contact() {
           <div className="mt-14 divide-y divide-hairline border-y border-hairline">
             {links.map((l) => {
               const isResume = l.label === "Resume";
+              const isEmail = l.label === "Email";
               return (
                 <a
                   key={l.label}
                   href={isResume ? "#" : l.href}
+                  target={isResume || isEmail ? undefined : "_blank"}
+                  rel={isResume || isEmail ? undefined : "noopener noreferrer"}
                   onClick={(e) => {
                     if (isResume) {
                       e.preventDefault();
