@@ -1,24 +1,37 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Nav } from "@/components/portfolio/Nav";
+import { Hero } from "@/components/portfolio/Hero";
+import { ResearchStatement } from "@/components/portfolio/ResearchStatement";
+import { Projects } from "@/components/portfolio/Projects";
+import { Skills } from "@/components/portfolio/Skills";
+import { Research } from "@/components/portfolio/Research";
+import { OpenSource } from "@/components/portfolio/OpenSource";
+import { Timeline } from "@/components/portfolio/Timeline";
+import { Contact } from "@/components/portfolio/Contact";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <main className="relative min-h-screen bg-background text-foreground">
+      <Nav />
+      <Hero />
+      <div className="divider-x" />
+      <ResearchStatement />
+      <div className="divider-x" />
+      <Projects />
+      <div className="divider-x" />
+      <Skills />
+      <div className="divider-x" />
+      <Research />
+      <div className="divider-x" />
+      <OpenSource />
+      <div className="divider-x" />
+      <Timeline />
+      <div className="divider-x" />
+      <Contact />
+    </main>
   );
 }
