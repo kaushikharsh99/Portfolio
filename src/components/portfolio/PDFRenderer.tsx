@@ -11,6 +11,12 @@ export function PDFRenderer({ url }: PDFRendererProps) {
   const [loading, setLoading] = React.useState(true);
   const [scale, setScale] = React.useState(1.15);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const scaleRef = React.useRef(scale);
+
+  // Keep ref updated to avoid stale closures in event listeners
+  React.useEffect(() => {
+    scaleRef.current = scale;
+  }, [scale]);
 
   // Load PDF.js from CDN dynamically
   React.useEffect(() => {
@@ -59,13 +65,93 @@ export function PDFRenderer({ url }: PDFRendererProps) {
     };
   }, [url]);
 
+  // Trackpad Pinch-to-zoom & Mobile Touch Pinch-to-zoom gestures
+  React.useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    // 1. Desktop Trackpad/Mousewheel Pinch-to-zoom (ctrlKey + wheel)
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+        const zoomFactor = 0.04;
+        const direction = e.deltaY < 0 ? 1 : -1;
+        setScale((prev) => {
+          const next = prev + direction * zoomFactor;
+          return Math.min(2.5, Math.max(0.5, next));
+        });
+      }
+    };
+
+    // 2. Mobile/Touchscreen Pinch-to-zoom
+    let touchStartDist = 0;
+    let initialScale = 1.15;
+
+    const getDistance = (t1: Touch, t2: Touch) => {
+      const dx = t1.clientX - t2.clientX;
+      const dy = t1.clientY - t2.clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        touchStartDist = getDistance(e.touches[0], e.touches[1]);
+        initialScale = scaleRef.current;
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && touchStartDist > 0) {
+        e.preventDefault();
+        const dist = getDistance(e.touches[0], e.touches[1]);
+        const factor = dist / touchStartDist;
+        setScale(Math.min(2.5, Math.max(0.5, initialScale * factor)));
+      }
+    };
+
+    const handleTouchEnd = () => {
+      touchStartDist = 0;
+    };
+
+    container.addEventListener("wheel", handleWheel, { passive: false });
+    container.addEventListener("touchstart", handleTouchStart);
+    container.addEventListener("touchmove", handleTouchMove, { passive: false });
+    container.addEventListener("touchend", handleTouchEnd);
+
+    return () => {
+      container.removeEventListener("wheel", handleWheel);
+      container.removeEventListener("touchstart", handleTouchStart);
+      container.removeEventListener("touchmove", handleTouchMove);
+      container.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, []);
+
   return (
-    <div className="flex flex-col h-full w-full bg-background overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-background overflow-hidden relative">
+      
+      {/* Local style block for scrollbars */}
+      <style>{`
+        .pdf-scroll-container::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+        .pdf-scroll-container::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.2);
+        }
+        .pdf-scroll-container::-webkit-scrollbar-thumb {
+          background: var(--border-strong, rgba(255, 255, 255, 0.1));
+          border-radius: 999px;
+        }
+        .pdf-scroll-container::-webkit-scrollbar-thumb:hover {
+          background: var(--subtle, rgba(255, 255, 255, 0.25));
+        }
+      `}</style>
+
       {/* Dynamic Controls Toolbar */}
       {!loading && pdf && (
         <div className="flex items-center justify-center gap-4 bg-surface-2 border-b border-border-strong px-4 py-2.5 text-mono text-xs select-none shrink-0">
           <button
-            onClick={() => setScale((prev) => Math.max(0.6, prev - 0.15))}
+            onClick={() => setScale((prev) => Math.max(0.5, prev - 0.15))}
             className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-surface text-muted-foreground hover:border-border-strong hover:text-foreground transition-colors cursor-pointer"
             title="Zoom Out"
           >
@@ -96,7 +182,7 @@ export function PDFRenderer({ url }: PDFRendererProps) {
       {/* Pages Canvas List */}
       <div
         ref={containerRef}
-        className="flex-1 overflow-y-auto overflow-x-hidden p-6 flex flex-col items-center gap-6 bg-background/50 scroll-smooth"
+        className="pdf-scroll-container flex-1 overflow-auto p-6 flex flex-col items-center gap-6 bg-background/50 scroll-smooth"
       >
         {loading && (
           <div className="flex flex-col items-center justify-center py-20 gap-3 text-muted-foreground">
