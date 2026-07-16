@@ -11,6 +11,11 @@ export interface PlatformBenchmark {
   model: string;
 }
 
+export interface GenerationExample {
+  prompt: string;
+  output: string;
+}
+
 export interface ProjectDetail {
   id: string;
   name: string;
@@ -47,6 +52,12 @@ export interface ProjectDetail {
   evolution?: EvolutionStep[];
   platforms?: PlatformBenchmark[];
   benchmarkImage?: string;
+
+  // TinyStories Specific Research Fields
+  generationExamples?: GenerationExample[];
+  trainingConfig?: { label: string; value: string }[];
+  limitations?: string[];
+  lessons?: { title: string; content: string }[];
 }
 
 export const projectsData: ProjectDetail[] = [
@@ -176,16 +187,16 @@ export const projectsData: ProjectDetail[] = [
     id: "tinystories-17m",
     name: "TinyStories-17M",
     status: "Completed",
-    tagline: "A 17.2M-parameter language model, from scratch",
+    tagline: "Training a 17.2M Parameter Language Model From Scratch",
     description:
-      "Full pretraining stack: custom BPE tokenizer, dataset curation, dataloader, transformer decoder, training loop, and evaluation. Published weights and eval on Hugging Face.",
-    stack: ["PyTorch", "SentencePiece", "Parquet", "Hugging Face"],
+      "TinyStories-17M is a decoder-only Transformer trained entirely from scratch on 2.1 million TinyStories-style synthetic stories to explore how capable modern Small Language Models can become through high-quality data and efficient architecture.",
+    stack: ["PyTorch", "SentencePiece", "Parquet", "Hugging Face", "Python"],
     achievements: [
-      "17.2M-param decoder trained on a 2M-example corpus",
-      "Custom tokenizer + preprocessing pipeline",
-      "Reproducible training config and eval harness",
+      "🧠 Trained a 17.2M parameter custom decoder-only Transformer from scratch",
+      "📚 Curated and processed 2.1M synthetic story data inputs with zero padding",
+      "📈 Achieved fluent grammar, dialogue syntax, and narrative coherence",
     ],
-    githubUrl: "https://github.com/kaushikharsh99",
+    githubUrl: "https://github.com/kaushikharsh99/TinyStories-17M",
     huggingfaceUrl: "https://huggingface.co/kaushik-harsh-99",
     motivation:
       "While large language models are trained on thousands of GPUs, the core principles of optimization, training stability, and emergent grammar apply equally at smaller scales. I built TinyStories-17M to gain a deep, first-principles understanding of generative pretraining. The goal was to build the entire pipeline—from tokenizing raw corpora to writing custom transformer layers and handling multi-threaded batch streams—with no framework abstractions.",
@@ -198,7 +209,7 @@ export const projectsData: ProjectDetail[] = [
 └──────────────────────────┬─────────────────────────────┘
                            ▼
                  ┌──────────────────┐
-                 │ Token Embedding  │
+                 │ Token Embedding  │ (Tied Weights)
                  └─────────┬────────┘
                            ▼
                  ┌──────────────────┐  ◄─── RoPE Rotations
@@ -206,7 +217,7 @@ export const projectsData: ProjectDetail[] = [
                  └─────────┬────────┘
                            ▼
                  ┌──────────────────┐
-                 │ Causal Attention │  ◄─── FlashAttention-2
+                 │ Causal Attention │  ◄─── Flash-Attention SDPA
                  └─────────┬────────┘
                            ▼
                  ┌──────────────────┐
@@ -221,7 +232,7 @@ export const projectsData: ProjectDetail[] = [
 │                   PROBABILITY DIST                     │
 └────────────────────────────────────────────────────────┘`,
     technicalImplementation:
-      "I wrote the custom decoder layers in PyTorch using tensor operations. The tokenizer was trained on the synthetic TinyStories corpus using SentencePiece to produce an 8,000 token vocabulary. Training leveraged Mixed Precision (FP16) on a single GPU with gradient scaling to maintain stability during peak learning rates.",
+      "I wrote the custom decoder layers in PyTorch using tensor operations. The tokenizer was trained on the synthetic TinyStories corpus using SentencePiece to produce an 8,000 token vocabulary. Training leveraged Mixed Precision (BF16) on a single GPU with gradient scaling to maintain stability during peak learning rates.",
     keyFeatures: [
       "SentencePiece BPE tokenizer optimized for child vocabulary subset",
       "Pre-LN architecture with RMSNorm layers for gradient stability",
@@ -233,17 +244,17 @@ export const projectsData: ProjectDetail[] = [
     solutions:
       "I implemented gradient clipping at 1.0, coupled with a cosine decay learning rate scheduler featuring a longer linear warmup period of 2,000 steps. This stabilized the initial attention weights and kept parameters bound.",
     metrics: [
-      { value: "1.18", label: "Final Validation Loss" },
       { value: "17.2M", label: "Trained Parameters" },
-      { value: "2M+", label: "Training Examples" },
-      { value: "2.4M", label: "Tokens/sec Training Speed" },
+      { value: "2.1M", label: "Synthetic Stories" },
+      { value: "8 Layers", label: "Transformer Depth" },
+      { value: "512", label: "Context Window Length" },
     ],
     inspirations: [
       { title: "TinyStories: How Small Can Language Models Be?", link: "https://arxiv.org/abs/2305.07759" },
       { title: "LLaMA: Open and Efficient Foundation Models", link: "https://arxiv.org/abs/2302.13971" },
     ],
     futureWork:
-      "Experiment with Reinforcement Learning from AI Feedback (RLAIF) to align the model outputs toward specific reading comprehension metrics.",
+      "Increase training dataset to 3.7M stories, run architecture experiments using Grouped-Query Attention (GQA), train for longer steps with larger effective batch sizes, and optimize tokenizer bounds.",
     codeSnippet: {
       language: "python",
       filename: "model.py",
@@ -258,7 +269,46 @@ class SwiGLU(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # Swish(x * W1) * (x * W3) projected through W2
         return self.w2(F.silu(self.w1(x)) * self.w3(x))`
-    }
+    },
+    generationExamples: [
+      {
+        prompt: "Once upon a time, there was a little girl named Lily. She loved to play in the garden with her toys. One day, she saw a big, beautiful butterfly.",
+        output: "She wanted to catch it, but she was careful not to hurt it. She sat very still, and the butterfly landed on her hand. Lily was so happy. She ran to tell her mom all about her new friend. Her mom said, \"Lily, you are very gentle. That is a good thing to be.\" Lily smiled and went back to look at the butterfly again."
+      },
+      {
+        prompt: "Lily and Ben were playing in the park. Lily found a small, round stone on the ground.",
+        output: "She showed it to Ben. \"Look, Ben!\" she said. \"This stone is shiny and green.\" Ben touched the stone. It felt cold. They decided to bury the stone under the tree. They dug a little hole with a stick. Then they put the stone inside and covered it with dirt. \"Now it has a home,\" Ben said. They went home for lunch, feeling very proud."
+      }
+    ],
+    trainingConfig: [
+      { label: "Optimizer", value: "AdamW (lr=5e-4, beta=(0.9, 0.95), weight_decay=0.1)" },
+      { label: "Precision", value: "BF16 Mixed Precision (AMP)" },
+      { label: "LR Scheduler", value: "Cosine Annealing with linear warmup (2,000 steps)" },
+      { label: "Epochs", value: "8 Epochs" },
+      { label: "Batch Size", value: "70 (Micro-batch)" },
+      { label: "Context Length", value: "512 tokens" },
+      { label: "Vocabulary Size", value: "8000 (SentencePiece BPE)" }
+    ],
+    limitations: [
+      "Limited general knowledge because training is restricted to children's themes",
+      "Susceptibility to loop repetitions in very long generation contexts (>300 tokens)",
+      "Small scale prevents complex mathematical calculations, translation, or logical coding steps",
+      "Lack of real-world historical facts or technical domain information"
+    ],
+    lessons: [
+      {
+        title: "Clean Data Over Scale",
+        content: "For small parameter language models, low token noise is critical. Clean synthetic text enables grammar representation to emerge at much lower step counts."
+      },
+      {
+        title: "BF16 Convergence Stability",
+        content: "We faced severe gradient overflow spikes in early iterations. Restricting gradient norms to 1.0 combined with 2,000 warmup steps kept training curves stable."
+      },
+      {
+        title: "Vocabulary Sizing Constraints",
+        content: "Setting vocabulary capacity to 8,000 words balanced model embedding size with token sequence lengths, forcing early representation learning onto layers."
+      }
+    ]
   },
   {
     id: "llm-post-training",
