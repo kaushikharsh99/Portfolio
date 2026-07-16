@@ -444,6 +444,37 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
                 )}
               </section>
 
+              {/* Model Comparison Table */}
+              {project.modelComparison && (
+                <section className="space-y-4">
+                  <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                    Model Architecture & Parameter Comparison
+                  </h4>
+                  <div className="overflow-x-auto rounded-lg border border-border">
+                    <table className="w-full text-left text-xs text-muted-foreground border-collapse">
+                      <thead className="bg-surface-2/85 font-mono text-[10px] uppercase tracking-wider text-subtle border-b border-border select-none">
+                        <tr>
+                          <th className="px-4 py-3 font-semibold text-foreground">Model Variant</th>
+                          <th className="px-4 py-3 font-semibold text-foreground">Test Accuracy</th>
+                          <th className="px-4 py-3 font-semibold text-foreground">Parameter Size</th>
+                          <th className="px-4 py-3 font-semibold text-foreground">Primary Purpose</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-hairline bg-background/20">
+                        {project.modelComparison.map((row) => (
+                          <tr key={row.name} className="hover:bg-surface/30 transition-colors">
+                            <td className="px-4 py-3 font-semibold text-foreground">{row.name}</td>
+                            <td className="px-4 py-3 font-mono text-accent">{row.accuracy}</td>
+                            <td className="px-4 py-3 font-mono">{row.parameters}</td>
+                            <td className="px-4 py-3">{row.purpose}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+              )}
+
               {/* Training Configurations (For TinyStories-17M) */}
               {project.trainingConfig && (
                 <section className="space-y-4">

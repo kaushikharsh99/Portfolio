@@ -16,6 +16,13 @@ export interface GenerationExample {
   output: string;
 }
 
+export interface ModelComparison {
+  name: string;
+  accuracy: string;
+  parameters: string;
+  purpose: string;
+}
+
 export interface ProjectDetail {
   id: string;
   name: string;
@@ -58,6 +65,9 @@ export interface ProjectDetail {
   trainingConfig?: { label: string; value: string }[];
   limitations?: string[];
   lessons?: { title: string; content: string }[];
+
+  // Spam Detection Specific ML Fields
+  modelComparison?: ModelComparison[];
 }
 
 export const projectsData: ProjectDetail[] = [
@@ -198,6 +208,11 @@ export const projectsData: ProjectDetail[] = [
     ],
     githubUrl: "https://github.com/kaushikharsh99/TinyStories-17M",
     huggingfaceUrl: "https://huggingface.co/kaushik-harsh-99",
+    featured: true,
+    terminalLog: `$ turbo-llm --model Qwen/Qwen3.6-35B-A3B-FP8 --prompt "Who is Donald Trump?" --max_new_tokens 512
+[init] loading Qwen3.6-35B-A3B-FP8 weights...
+[memory] hierarchical VRAM cache size: 5.4 GB
+[runtime] generation active (RTX 3050: 2.30 tok/s)`,
     motivation:
       "While large language models are trained on thousands of GPUs, the core principles of optimization, training stability, and emergent grammar apply equally at smaller scales. I built TinyStories-17M to gain a deep, first-principles understanding of generative pretraining. The goal was to build the entire pipeline—from tokenizing raw corpora to writing custom transformer layers and handling multi-threaded batch streams—with no framework abstractions.",
     problemStatement:
@@ -499,5 +514,143 @@ def make_minhash(shingles: list[str], num_perm: int = 128) -> np.ndarray:
                 min_hashes[i] = h
     return min_hashes`
     }
+  },
+  {
+    id: "spam-detection",
+    name: "Spam Detection Model",
+    status: "Completed",
+    tagline: "From Classical Machine Learning to Knowledge Distillation",
+    description:
+      "An end-to-end email classification system that explores multiple machine learning paradigms, progressing from TF-IDF baselines to deep neural networks and finally a lightweight distilled model for efficient deployment.",
+    stack: ["Python", "PyTorch", "Scikit-learn", "NumPy", "Pandas"],
+    achievements: [
+      "🎯 Multi-class email classification across Ham, Spam, and Phishing categories",
+      "📉 Compressed teacher model by 40× (80M to 2M params) via Knowledge Distillation",
+      "⚡ Maintained high accuracy (98.12% student vs 98.38% teacher) with low latency",
+    ],
+    githubUrl: "https://github.com/kaushikharsh99/Spam-Detection-Model",
+    huggingfaceUrl: "https://huggingface.co/kaushik-harsh-99",
+    featured: true,
+    terminalLog: `$ python train.py --distill --temperature 3.0 --alpha 0.5
+[init] loading locuoco/the-biggest-spam-ham-phish-email-dataset-300000...
+[data] loaded 300,000 emails | classes: ham, spam, phish
+[teacher] accuracy: 98.38% (80M params)
+[distill] epoch 5/5 | student loss: 0.124 | student accuracy: 98.12%`,
+    motivation:
+      "Developing text classifiers for production environments requires finding the optimal trade-off between model accuracy and inference latency. Large deep learning models deliver top-tier predictive capabilities but suffer from high computational overhead, making them expensive or slow to run at scale. I built the Spam Detection Model to explore the transition from classical TF-IDF architectures to high-capacity neural network teachers, and then condense that knowledge into a compact, deployable student classifier using distillation techniques.",
+    problemStatement:
+      "Organizations must filter legitimate mail (ham), unsolicited ads (spam), and high-risk security threats (phishing). Detecting phishing attempts requires analyzing subtle wording cues rather than simple keywords, demanding high-capacity models. However, serving an 80M parameter neural network model to scan millions of inbound emails in real time introduces substantial host costs and processing latency. We need a model that runs with minimal VRAM and CPU cycles while matching deep model accuracy.",
+    architectureDesc:
+      "The project is structured in three development phases. First, Logistic Regression and Linear SVM classifiers establish TF-IDF baselines. Second, an 80M parameter deep neural network is trained as a Teacher model using 512-dimension word embeddings, residual blocks, and global max pooling. Finally, a lightweight 2M parameter Student model is trained via distillation, leveraging an attention mechanism, 128-dimension embeddings, and a combined loss function mapping both ground-truth tags and soft teacher logits.",
+    architectureDiagram: `┌────────────────────────────────────────────────────────┐
+│                    TRAINING DATASET                    │
+└──────────────────────────┬─────────────────────────────┘
+                           ▼
+             ┌───────────────────────────────┐
+             │       Tokenized Sequences     │ (Fixed Len: 150)
+             └──────────────┬────────────────┘
+                            ▼
+           ┌─────────────────────────────────┐
+           │        TEACHER MODEL (80M)      │ (Embeddings: 512d)
+           └────────────────┬────────────────┘
+                            │ (Soft Logits)
+                            ▼
+           ┌─────────────────────────────────┐
+           │    KNOWLEDGE DISTILLATION       │ (KL Divergence Loss)
+           │      [Temperature: 3.0]         │
+           └────────────────┬────────────────┘
+                            ▼
+           ┌─────────────────────────────────┐
+           │        STUDENT MODEL (2M)       │ (Embeddings: 128d + Attention)
+           └─────────────────────────────────┘`,
+    technicalImplementation:
+      "The system runs on PyTorch and Scikit-learn. The classical baseline uses TF-IDF word unigrams and bigrams. The teacher model is built with dense multi-layer residual paths, incorporating dropout and batch normalization. Distillation is coordinated using a custom loss module that combines Cross-Entropy with KL Divergence scaled by a temperature factor of 3.0. The student model uses self-attention layers to extract contextual representations from 128d word vectors, bounding its parameter footprint to 2M.",
+    keyFeatures: [
+      "Multi-class classification logic categorizing Ham, Spam, and Phish messages",
+      "Knowledge Distillation pipeline using temperature-scaled KL Divergence loss",
+      "Classical ML benchmarks utilizing Logistic Regression and Linear SVM configurations",
+      "Deep neural teacher model structured with residual blocks, layer normalization, and dropout",
+      "Lightweight student architecture utilizing self-attention with compact vocab lists",
+      "Class weighting logic to handle severe category imbalances in email data",
+    ],
+    challenges:
+      "The primary challenge was the training dataset imbalance, where phishing emails were heavily underrepresented compared to ham, causing the model to initially misclassify phishing attempts as ham.",
+    solutions:
+      "I calculated class weights based on inverse frequency ratios and integrated them directly into the Cross-Entropy loss functions. For knowledge distillation, I tuned the alpha ratio to balance ground-truth categories with soft teacher outputs, boosting phishing classification precision.",
+    metrics: [
+      { value: "98.38%", label: "Teacher Accuracy" },
+      { value: "98.12%", label: "Distilled Model" },
+      { value: "80M", label: "Teacher Parameters" },
+      { value: "2M", label: "Student Parameters" },
+    ],
+    inspirations: [
+      { title: "Distilling the Knowledge in a Neural Network", link: "https://arxiv.org/abs/1503.02531" },
+      { title: "locuoco/the-biggest-spam-ham-phish-email-dataset-300000", link: "https://huggingface.co/datasets/locuoco/the-biggest-spam-ham-phish-email-dataset-300000" },
+    ],
+    futureWork:
+      "Integrate character-level embeddings to improve robustness against obfuscated spelling or typo-based email bypasses, and package the distilled student model as a WebAssembly module for browser-native email scanning.",
+    codeSnippet: {
+      language: "python",
+      filename: "distill.py",
+      code: `import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class DistillationLoss(nn.Module):
+    def __init__(self, temperature: float = 3.0, alpha: float = 0.5):
+        super().__init__()
+        self.temperature = temperature
+        self.alpha = alpha
+        self.cross_entropy = nn.CrossEntropyLoss()
+        
+    def forward(self, student_logits: torch.Tensor, teacher_logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
+        # Standard Cross-Entropy loss on true labels
+        student_loss = self.cross_entropy(student_logits, labels)
+        
+        # Soft label loss using KL Divergence
+        soft_student = F.log_softmax(student_logits / self.temperature, dim=-1)
+        soft_teacher = F.softmax(teacher_logits / self.temperature, dim=-1)
+        
+        # Multiply by temperature^2 to scale gradients properly
+        kl_loss = F.kl_div(soft_student, soft_teacher, reduction='batchmean') * (self.temperature ** 2)
+        
+        # Balanced loss combination
+        return (1.0 - self.alpha) * student_loss + self.alpha * kl_loss`
+    },
+    trainingConfig: [
+      { label: "Teacher Parameters", value: "~80 Million" },
+      { label: "Student Parameters", value: "~2 Million" },
+      { label: "Sequence Length", value: "150 tokens" },
+      { label: "Temperature", value: "3.0" },
+      { label: "Alpha Ratio", value: "0.5 (loss balancing)" },
+      { label: "Vocabulary Size", value: "20,000 tokens" },
+      { label: "Loss Metrics", value: "CrossEntropy + KL Div" }
+    ],
+    limitations: [
+      "Vulnerable to novel adversarial obfuscations or unicode spelling bypasses in email text",
+      "Limited accuracy on languages other than English due to dataset focus",
+      "Does not analyze email attachments or embedded hyperlinks directly, only text content",
+      "Requires model retuning as spam/phishing campaign topics evolve over time"
+    ],
+    lessons: [
+      {
+        title: "TF-IDF Baselines Stand Strong",
+        content: "Logistic Regression and SVM benchmarks achieved ~95.4% accuracy, proving that classical algorithms remain essential checkpoints before building deep systems."
+      },
+      {
+        title: "Logits Are Dense Representations",
+        content: "By learning soft teacher probabilities rather than hard binary targets, the 2M student generalized better and avoided the overfitting pitfalls typical of small networks."
+      },
+      {
+        title: "Weights Balance Imbalances",
+        content: "Phishing threats represent a small percentage of raw email datasets. Applying inverse class frequency multipliers in the loss function was critical to make training convergent."
+      }
+    ],
+    modelComparison: [
+      { name: "Logistic Regression", accuracy: "95.30%", parameters: "~20K (Vocabulary weight vectors)", purpose: "TF-IDF baseline classification" },
+      { name: "Support Vector Machine (SVM)", accuracy: "95.40%", parameters: "~20K (Vocabulary weight vectors)", purpose: "Margin-based baseline" },
+      { name: "Neural Teacher", accuracy: "98.38%", parameters: "80,000,000 (Residual network)", purpose: "Maximum accuracy checkpoint" },
+      { name: "Distilled Student", accuracy: "98.12%", parameters: "2,000,000 (Self-attention + 128d embed)", purpose: "Lightweight, low-latency deployment" }
+    ]
   }
 ];
