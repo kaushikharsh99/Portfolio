@@ -1,6 +1,6 @@
 import * as React from "react";
 import { ProjectDetail } from "./projectData";
-import { X, ArrowLeft, ArrowRight, Github, ExternalLink, Cpu, Sparkles, CheckCircle2, ChevronRight, Copy, Check } from "lucide-react";
+import { X, ArrowLeft, ArrowRight, Github, ExternalLink, Cpu, Sparkles, CheckCircle2, ChevronRight, Play, Terminal, Database, Check, Layers, AlertTriangle } from "lucide-react";
 import { TechChip } from "./Projects";
 
 interface ProjectExpandedProps {
@@ -10,6 +10,443 @@ interface ProjectExpandedProps {
   onPrev: () => void;
 }
 
+// 1. SELF-TYPING TERMINAL SIMULATOR
+function InteractiveTerminal({ command, logText }: { command: string; logText: string }) {
+  const [lines, setLines] = React.useState<string[]>([]);
+  const [typedCommand, setTypedCommand] = React.useState("");
+  const logLines = React.useMemo(() => logText.split("\n"), [logText]);
+
+  React.useEffect(() => {
+    setLines([]);
+    setTypedCommand("");
+    
+    // Animate command typing
+    let cmdIdx = 0;
+    const cmdInterval = setInterval(() => {
+      if (cmdIdx < command.length) {
+        setTypedCommand((prev) => prev + command[cmdIdx]);
+        cmdIdx++;
+      } else {
+        clearInterval(cmdInterval);
+        // Start streaming logs after command is typed
+        let logIdx = 0;
+        const logInterval = setInterval(() => {
+          if (logIdx < logLines.length) {
+            setLines((prev) => [...prev, logLines[logIdx]]);
+            logIdx++;
+          } else {
+            clearInterval(logInterval);
+          }
+        }, 150);
+      }
+    }, 20);
+
+    return () => {
+      clearInterval(cmdInterval);
+    };
+  }, [command, logLines]);
+
+  return (
+    <div className="overflow-hidden rounded-lg border border-border bg-surface shadow-elevated select-none">
+      <div className="flex items-center gap-1.5 border-b border-border bg-surface-2 px-4 py-2">
+        <span className="h-2.5 w-2.5 rounded-full bg-border-strong/60" />
+        <span className="h-2.5 w-2.5 rounded-full bg-border-strong/60" />
+        <span className="h-2.5 w-2.5 rounded-full bg-border-strong/60" />
+        <span className="text-mono ml-3 text-[10px] text-muted-foreground flex items-center gap-1">
+          <Terminal className="h-3 w-3 text-accent" />
+          interactive_session.sh
+        </span>
+      </div>
+      <div className="p-4 font-mono text-[11px] leading-5 text-muted-foreground bg-background/25">
+        <div className="flex items-center gap-1">
+          <span className="text-accent">$</span>
+          <span className="text-foreground">{typedCommand}</span>
+          <span className="inline-block h-4 w-1.5 bg-accent animate-pulse" />
+        </div>
+        <div className="mt-3 space-y-1">
+          {lines.map((line, idx) => (
+            <div key={idx} className="animate-fade-in text-[10px] leading-relaxed truncate">
+              {line}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 2. TURBO-LLM HIERARCHICAL MEMORY & ROUTING SIMULATOR
+function TurboLLMSimulator() {
+  const [activeStep, setActiveStep] = React.useState<"idle" | "disk" | "host" | "gpu">("idle");
+  const [activeExpert, setActiveExpert] = React.useState<number | null>(null);
+  const [logs, setLogs] = React.useState<string[]>([]);
+  const [vramUsage, setVramUsage] = React.useState(0);
+
+  const triggerStep = () => {
+    if (activeStep === "idle") {
+      setActiveStep("disk");
+      setActiveExpert(Math.floor(Math.random() * 4) + 1);
+      setLogs(["[init] Inference query received.", "[SSD] Streaming active Layer weights..."]);
+      setVramUsage(0.8);
+    } else if (activeStep === "disk") {
+      setActiveStep("host");
+      setLogs((prev) => [...prev, "[RAM] Experts loaded in Host memory cache."]);
+      setVramUsage(2.4);
+    } else if (activeStep === "host") {
+      setActiveStep("gpu");
+      setLogs((prev) => [...prev, `[VRAM] Expert E${activeExpert} loaded into VRAM GPU Cache slots.`]);
+      setVramUsage(5.4);
+    } else {
+      setActiveStep("idle");
+      setActiveExpert(null);
+      setLogs([]);
+      setVramUsage(0);
+    }
+  };
+
+  return (
+    <div className="card-panel p-5 bg-surface-2/10 border border-border space-y-5">
+      <div className="flex items-center justify-between border-b border-hairline pb-3">
+        <h5 className="font-mono text-xs text-foreground uppercase tracking-wider">MoE Offloading Simulator</h5>
+        <button 
+          onClick={triggerStep}
+          className="flex h-7 items-center justify-center gap-1.5 px-3 rounded bg-accent text-background text-[10px] font-mono hover:opacity-90 transition-opacity cursor-pointer"
+        >
+          <Play className="h-3 w-3" />
+          <span>{activeStep === "idle" ? "Initialize Run" : activeStep === "gpu" ? "evict / reset" : "stream step"}</span>
+        </button>
+      </div>
+
+      {/* Memory Nodes */}
+      <div className="grid grid-cols-3 gap-3 text-center">
+        {/* SSD Storage */}
+        <div className={`p-3 rounded border text-xs flex flex-col justify-between min-h-[90px] transition-colors ${
+          activeStep === "disk" ? "border-accent bg-accent/5" : "border-border bg-background/20"
+        }`}>
+          <span className="font-mono text-[9px] text-subtle uppercase">SSD (Disk)</span>
+          <span className="text-[10px] text-muted-foreground mt-2">Inactive Weights</span>
+          <div className="flex justify-center gap-1 mt-2">
+            {[1, 2, 3, 4].map(idx => (
+              <span key={idx} className={`h-4 w-5 text-[8px] font-mono rounded flex items-center justify-center border ${
+                activeExpert === idx && activeStep === "disk" ? "bg-accent text-background border-accent" : "border-hairline"
+              }`}>E{idx}</span>
+            ))}
+          </div>
+        </div>
+
+        {/* Host CPU RAM */}
+        <div className={`p-3 rounded border text-xs flex flex-col justify-between min-h-[90px] transition-colors ${
+          activeStep === "host" ? "border-accent bg-accent/5" : "border-border bg-background/20"
+        }`}>
+          <span className="font-mono text-[9px] text-subtle uppercase">Host (RAM)</span>
+          <span className="text-[10px] text-muted-foreground mt-2">Buffered Cache</span>
+          <div className="flex justify-center gap-1 mt-2">
+            {[1, 2, 3, 4].map(idx => (
+              <span key={idx} className={`h-4 w-5 text-[8px] font-mono rounded flex items-center justify-center border ${
+                activeExpert === idx && activeStep === "host" ? "bg-accent text-background border-accent" : "border-hairline"
+              }`}>E{idx}</span>
+            ))}
+          </div>
+        </div>
+
+        {/* GPU VRAM */}
+        <div className={`p-3 rounded border text-xs flex flex-col justify-between min-h-[90px] transition-colors ${
+          activeStep === "gpu" ? "border-accent bg-accent/5" : "border-border bg-background/20"
+        }`}>
+          <span className="font-mono text-[9px] text-subtle uppercase">GPU (VRAM)</span>
+          <span className="text-[10px] text-muted-foreground mt-2">Active slots</span>
+          <div className="flex justify-center gap-1 mt-2">
+            {activeExpert && activeStep === "gpu" ? (
+              <span className="h-4 w-8 text-[9px] font-mono bg-accent text-background border border-accent rounded flex items-center justify-center">E{activeExpert}</span>
+            ) : (
+              <span className="h-4 w-10 text-[8px] font-mono text-subtle border border-hairline border-dashed rounded flex items-center justify-center">Empty</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Simulator Metrics */}
+      <div className="grid grid-cols-2 gap-4 text-xs font-mono border-t border-hairline pt-3">
+        <div>
+          <span className="text-subtle">VRAM Allocation:</span>
+          <div className="flex items-center gap-2 mt-1">
+            <div className="flex-1 h-1.5 bg-surface rounded-full overflow-hidden">
+              <div className="bg-accent h-full transition-all duration-300" style={{ width: `${(vramUsage/6.0)*100}%` }} />
+            </div>
+            <span>{vramUsage.toFixed(1)} GB / 6.0 GB</span>
+          </div>
+        </div>
+        <div className="pl-4 border-l border-hairline">
+          <span className="text-subtle">Inference Event Log:</span>
+          <div className="text-[10px] text-muted-foreground mt-1 space-y-1 min-h-[40px] max-h-[60px] overflow-y-auto">
+            {logs.map((log, idx) => (
+              <div key={idx}>{log}</div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 3. TINYSTORIES PRETRAINING PIPELINE WIZARD
+function TinyStoriesWizard() {
+  const [activeTab, setActiveTab] = React.useState<number>(0);
+  const steps = [
+    { label: "1. Tokenizer", title: "SentencePiece Vocab Builder", desc: "Builds a custom 8,000 token BPE dictionary using a child-level English stories subset to maximize character density per block." },
+    { label: "2. Dataset", title: "Sequence Packing & Curation", desc: "Indices 2.1M synthetic story Parquet files, organizing sequences to match context limits (512 tokens) with zero padding overheads." },
+    { label: "3. Training", title: "AdamW SFT Configuration", desc: "Loads model parameters using BF16 mixed precision. Employs 2,000 warm-up steps with learning rate cosine decay to prevent gradient spikes." },
+    { label: "4. Transformer", title: "RMSNorm & SwiGLU MLP Block", desc: "Processes inputs causal-attention mappings, applying Rotary Position Embeddings (RoPE) and RMSNorm pre-layer bounds for numerical stability." },
+    { label: "5. Evaluation", title: "Qualitative Validation Checks", desc: "Calculates held-out cross-entropy validation loss targets (converged to 1.18) and evaluates story formatting structures." },
+    { label: "6. HF Export", title: "Publishing Model weights", desc: "Compiles config structures and publishes GGUF model files directly to Hugging Face registries for local execution." }
+  ];
+
+  return (
+    <div className="card-panel p-5 bg-surface-2/10 border border-border space-y-5">
+      <h5 className="font-mono text-xs text-foreground uppercase tracking-wider border-b border-hairline pb-2">Pretraining Wizard</h5>
+      
+      {/* Wizard Steps Navigation */}
+      <div className="flex flex-wrap gap-2 select-none">
+        {steps.map((step, idx) => (
+          <button
+            key={step.label}
+            onClick={() => setActiveTab(idx)}
+            className={`text-mono text-[9px] uppercase px-2 py-1 rounded border transition-all cursor-pointer ${
+              activeTab === idx
+                ? "bg-accent border-accent text-background font-semibold"
+                : "border-border text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {step.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Step Detail Content */}
+      <div className="p-4 rounded bg-background/30 border border-hairline min-h-[110px] animate-fade-in flex flex-col justify-between">
+        <div>
+          <h6 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+            <Sparkles className="h-3.5 w-3.5 text-accent" />
+            {steps[activeTab].title}
+          </h6>
+          <p className="text-[11px] text-muted-foreground leading-relaxed mt-2">
+            {steps[activeTab].desc}
+          </p>
+        </div>
+        <div className="text-[9px] text-mono text-accent text-right mt-3">
+          Step {activeTab + 1} of 6 in the pipeline
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 4. INDIAN LEGAL LLM DATASET REFINEMENT COMPARISON
+function LegalLLMRefinement() {
+  const [activeDataset, setActiveDataset] = React.useState<"v2" | "v3">("v3");
+
+  return (
+    <div className="card-panel p-5 bg-surface-2/10 border border-border space-y-4">
+      <div className="flex items-center justify-between border-b border-hairline pb-2">
+        <h5 className="font-mono text-xs text-foreground uppercase tracking-wider">Dataset Curation Inspector</h5>
+        <div className="flex gap-2 select-none">
+          <button
+            onClick={() => setActiveDataset("v2")}
+            className={`text-mono text-[9px] uppercase px-2 py-0.5 rounded border transition-all cursor-pointer ${
+              activeDataset === "v2" ? "bg-destructive/10 border-destructive/20 text-destructive font-semibold" : "border-border text-muted-foreground"
+            }`}
+          >
+            V2 (Verbose)
+          </button>
+          <button
+            onClick={() => setActiveDataset("v3")}
+            className={`text-mono text-[9px] uppercase px-2 py-0.5 rounded border transition-all cursor-pointer ${
+              activeDataset === "v3" ? "bg-green-500/10 border-green-500/20 text-green-500 font-semibold" : "border-border text-muted-foreground"
+            }`}
+          >
+            V3 (Grounded)
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+        {/* Dataset target structure sample */}
+        <div className="p-3.5 rounded border border-hairline bg-background/25">
+          <span className="text-[9px] text-accent uppercase block mb-1">Target Template Pattern</span>
+          {activeDataset === "v2" ? (
+            <p className="text-muted-foreground leading-relaxed italic">
+              "The statutory code was established to govern the administration... (long description of historical context followed by hypothetical operational goals and policy significance details)."
+            </p>
+          ) : (
+            <div className="space-y-1 text-foreground leading-snug">
+              <div className="text-[10px] text-accent-violet">Section Summary ➔</div>
+              <div className="text-[10px] text-accent-violet">Key Provision ➔</div>
+              <div className="text-[10px] text-accent-violet">Brief Explanation ➔</div>
+              <div className="text-[10px] text-accent-violet">Short Conclusion</div>
+            </div>
+          )}
+        </div>
+
+        {/* Model Output Impact */}
+        <div className="p-3.5 rounded border border-hairline bg-background/25">
+          <span className="text-[9px] text-accent uppercase block mb-1">Evaluation Evaluation</span>
+          {activeDataset === "v2" ? (
+            <div className="space-y-1">
+              <span className="text-destructive font-semibold flex items-center gap-1 text-[10px]">
+                <AlertTriangle className="h-3.5 w-3.5" /> High Hallucination Rate
+              </span>
+              <p className="text-muted-foreground leading-relaxed text-[11px]">
+                Model learns answer *style* instead of facts. Emits broad significance statements and incorrect details to fill templates.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              <span className="text-green-500 font-semibold flex items-center gap-1 text-[10px]">
+                <CheckCircle2 className="h-3.5 w-3.5" /> High Factual Grounding
+              </span>
+              <p className="text-muted-foreground leading-relaxed text-[11px]">
+                Model is bound to facts. Outputs stay close to the statutory codes and do not speculate beyond context limits.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 5. MATH-INSTRUCT SOLVER SIMULATOR
+function MathInstructSimulator() {
+  const [selectedTask, setSelectedTask] = React.useState<number>(0);
+  const [running, setRunning] = React.useState(false);
+  const [outputLines, setOutputLines] = React.useState<string[]>([]);
+
+  const tasks = [
+    { problem: "Solve: 12x + 5 = 29", base: "12x plus 5 is 29. The number is 2 because 12*2=24, and 24+5=29.", sft: ["Subtract 5 from both sides: 12x = 24.", "Divide by 12: x = 2.", "Conclusion: The value of x is 2."] },
+    { problem: "Solve: x^2 - 9 = 0", base: "x squared is nine. The answer can be three because three times three is nine.", sft: ["Add 9 to both sides: x^2 = 9.", "Take square root: x = ±√9.", "Conclusion: x = 3 or x = -3."] }
+  ];
+
+  const runSimulation = () => {
+    setRunning(true);
+    setOutputLines([]);
+    let idx = 0;
+    const interval = setInterval(() => {
+      if (idx < tasks[selectedTask].sft.length) {
+        setOutputLines((prev) => [...prev, tasks[selectedTask].sft[idx]]);
+        idx++;
+      } else {
+        clearInterval(interval);
+        setRunning(false);
+      }
+    }, 400);
+  };
+
+  return (
+    <div className="card-panel p-5 bg-surface-2/10 border border-border space-y-4">
+      <div className="flex items-center justify-between border-b border-hairline pb-2">
+        <h5 className="font-mono text-xs text-foreground uppercase tracking-wider">SFT Reasoning Solver</h5>
+        <div className="flex gap-2 select-none">
+          {tasks.map((t, idx) => (
+            <button
+              key={idx}
+              onClick={() => { setSelectedTask(idx); setOutputLines([]); }}
+              className={`text-mono text-[9px] uppercase px-2 py-0.5 rounded border cursor-pointer ${
+                selectedTask === idx ? "bg-accent border-accent text-background font-semibold" : "border-border text-muted-foreground"
+              }`}
+            >
+              Task {idx + 1}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="p-3 bg-background/25 rounded border border-hairline text-xs font-mono">
+        <span className="text-[9px] text-accent-violet block">Problem Input</span>
+        <div className="text-foreground font-semibold mt-1">{tasks[selectedTask].problem}</div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+        {/* Baseline Output */}
+        <div className="p-3.5 rounded border border-destructive/20 bg-destructive/5">
+          <span className="text-[9px] text-destructive uppercase block mb-1.5 font-bold">Qwen3-0.6B Base Output</span>
+          <p className="text-muted-foreground leading-relaxed italic">
+            "{tasks[selectedTask].base}"
+          </p>
+        </div>
+
+        {/* Aligned Output */}
+        <div className="p-3.5 rounded border border-green-500/20 bg-green-500/5 flex flex-col justify-between min-h-[90px]">
+          <div>
+            <span className="text-[9px] text-green-500 uppercase block mb-1.5 font-bold">MathInstruct v1 Output</span>
+            <div className="space-y-1 text-foreground leading-relaxed">
+              {outputLines.map((line, idx) => (
+                <div key={idx} className="animate-fade-in">➔ {line}</div>
+              ))}
+            </div>
+          </div>
+          {outputLines.length === 0 && (
+            <button
+              onClick={runSimulation}
+              disabled={running}
+              className="mt-3 flex h-7 items-center justify-center gap-1.5 px-3 rounded bg-accent text-background text-[10px] font-mono hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
+            >
+              <span>Solve Problem</span>
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 6. SPAM-DETECTION COMPRESSION & DISTILLATION BAR CHART
+function SpamDistillationComparison() {
+  const models = [
+    { name: "Logistic Regression", accuracy: 95.30, params: 0.02, latency: 1.2 },
+    { name: "Support Vector Machine", accuracy: 95.40, params: 0.02, latency: 1.4 },
+    { name: "Deep Neural Teacher", accuracy: 98.38, params: 80.0, latency: 24.5 },
+    { name: "Distilled Student", accuracy: 98.12, params: 2.0, latency: 1.8 }
+  ];
+
+  return (
+    <div className="card-panel p-5 bg-surface-2/10 border border-border space-y-4">
+      <h5 className="font-mono text-xs text-foreground uppercase tracking-wider border-b border-hairline pb-2">Distillation Tradeoff Matrix</h5>
+      
+      <div className="space-y-4">
+        {models.map((m) => {
+          const sizePercent = m.params === 80.0 ? 100 : m.params === 2.0 ? 25 : 5;
+          const isStudent = m.name.includes("Distilled");
+          return (
+            <div key={m.name} className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className={`font-semibold ${isStudent ? "text-accent" : "text-foreground"}`}>{m.name}</span>
+                <span className="text-subtle text-[11px]">Accuracy: <strong className="text-foreground">{m.accuracy}%</strong></span>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-[10px] font-mono text-muted-foreground">
+                {/* Parameter footprint bar */}
+                <div className="flex items-center gap-2">
+                  <span className="w-16 shrink-0 text-subtle">Parameters:</span>
+                  <div className="flex-1 h-2 bg-surface rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${isStudent ? "bg-accent" : "bg-muted-foreground"}`} style={{ width: `${sizePercent}%` }} />
+                  </div>
+                  <span className="w-12 text-right">{m.params}M</span>
+                </div>
+                {/* Latency bar */}
+                <div className="flex items-center gap-2">
+                  <span className="w-12 shrink-0 text-subtle font-mono">Latency:</span>
+                  <div className="flex-1 h-2 bg-surface rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${isStudent ? "bg-accent-violet" : "bg-muted-foreground"}`} style={{ width: `${(m.latency/24.5)*100}%` }} />
+                  </div>
+                  <span className="w-12 text-right">{m.latency}ms</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExpandedProps) {
   const [expandedAsset, setExpandedAsset] = React.useState<"diagram" | "image" | null>(null);
@@ -53,7 +490,6 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
       onClose();
     }
   };
-
 
   const isResearchStyle = project.id === "tinystories-17m" || project.id === "indian-legal-llm" || project.id === "mathinstruct-v1";
 
@@ -140,7 +576,7 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
         <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-8 sm:px-8 md:px-12 space-y-12 animate-fade-in">
           
           {/* HERO BANNER SECTION */}
-          <section className="relative overflow-hidden rounded-xl border border-border-strong bg-surface p-6 sm:p-10 md:p-12">
+          <section className="relative overflow-hidden rounded-xl border border-border-strong bg-surface p-6 sm:p-10 md:p-12 animate-slide-up">
             {/* Mesh gradient effect */}
             <div className="absolute inset-0 bg-hero-glow opacity-30 pointer-events-none" />
             <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
@@ -162,7 +598,7 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
           </section>
 
           {/* KEY METRICS GRID */}
-          <section className="space-y-4">
+          <section className="space-y-4 animate-slide-up" style={{ animationDelay: "100ms" }}>
             <h3 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
               {isResearchStyle ? "Core Model Specifications" : "Performance Indicators & Metrics"}
             </h3>
@@ -179,38 +615,6 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
               ))}
             </div>
           </section>
-
-          {/* PLATFORMS GRID (For TurboLLM systems) */}
-          {project.platforms && (
-            <section className="space-y-4 pt-2">
-              <h3 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                Supported Platforms & Hardware Benchmarks
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {project.platforms.map((platform) => (
-                  <div key={platform.name} className="card-panel p-5 flex flex-col justify-between min-h-[140px] bg-surface-2/20">
-                    <div>
-                      <h4 className="text-sm font-semibold text-foreground">{platform.name}</h4>
-                      <p className="text-[10px] text-mono text-subtle mt-1 truncate" title={platform.model}>
-                        {platform.model}
-                      </p>
-                      <div className="mt-3 flex flex-wrap gap-1">
-                        {platform.specs.map(spec => (
-                          <span key={spec} className="text-[9px] font-mono px-2 py-0.5 border border-border bg-background rounded text-muted-foreground">
-                            {spec}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="mt-4 border-t border-hairline pt-3 flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Throughput:</span>
-                      <span className="font-mono font-bold text-accent">{platform.throughput}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
 
           {/* DUAL COLUMN CASE STUDY DATA */}
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-10 min-w-0">
@@ -277,6 +681,20 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
                 </div>
               </section>
 
+              {/* MODEL ARCHITECTURE SECTION (Interactive Diagram Wrappers) */}
+              <section className="space-y-6">
+                <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                  Architecture & Pipeline Simulation
+                </h4>
+                
+                {/* Render corresponding interactive visualizer based on project ID */}
+                {project.id === "turbollm" && <TurboLLMSimulator />}
+                {project.id === "tinystories-17m" && <TinyStoriesWizard />}
+                {project.id === "indian-legal-llm" && <LegalLLMRefinement />}
+                {project.id === "mathinstruct-v1" && <MathInstructSimulator />}
+                {project.id === "spam-detection" && <SpamDistillationComparison />}
+              </section>
+
               {/* INTERACTIVE TIMELINE (For Indian Legal LLM SFT) */}
               {project.timeline && (
                 <section className="space-y-4 pt-2">
@@ -285,7 +703,7 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
                   </h4>
                   <div className="relative border-l border-border-strong pl-6 ml-3 space-y-6 py-2">
                     {project.timeline.map((node) => (
-                      <div key={node.title} className="relative group">
+                      <div key={node.title} className="relative group animate-fade-in">
                         {/* Timeline Dot */}
                         <span className={`absolute -left-[31px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-background transition-transform ${
                           node.status === "completed" 
@@ -311,8 +729,8 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
                 </section>
               )}
 
-              {/* MODEL ARCHITECTURE SECTION */}
-              {isResearchStyle ? (
+              {/* MODEL SPEC CARDS GRID */}
+              {isResearchStyle && (
                 project.id === "tinystories-17m" ? (
                   <section className="space-y-4">
                     <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
@@ -365,136 +783,7 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
                     </section>
                   )
                 )
-              ) : (
-                <section className="space-y-4">
-                  <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                    Architecture & Flow
-                  </h4>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    {project.architectureDesc}
-                  </p>
-                  
-                  {project.architectureDiagram && (
-                    <div className="relative">
-                      <div 
-                        onClick={() => setExpandedAsset("diagram")}
-                        className="group relative cursor-zoom-in overflow-hidden rounded-lg border border-border bg-surface p-4 sm:p-6 font-mono text-[10px] sm:text-xs leading-5 text-muted-foreground select-none"
-                      >
-                        <pre className="overflow-x-auto whitespace-pre">
-                          {project.architectureDiagram}
-                        </pre>
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/40 transition-colors">
-                          <span className="rounded-md bg-background/90 px-3 py-1.5 text-xs text-foreground font-sans border border-border shadow opacity-0 group-hover:opacity-100 transition-opacity">
-                            Click to Expand Diagram
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </section>
               )}
-
-              {/* Training Flow (For TinyStories-17M and Indian Legal LLM SFT) */}
-              {project.id === "tinystories-17m" && (
-                <section className="space-y-4">
-                  <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                    End-to-End Training Pipeline Flow
-                  </h4>
-                  <div className="flex flex-col md:flex-row items-stretch justify-between gap-4 p-4 rounded-lg border border-border bg-surface-2/15 overflow-x-auto">
-                    {[
-                      { step: "1. Dataset", desc: "2.1M synthetic stories load (Parquet format)" },
-                      { step: "2. Tokenizer", desc: "SentencePiece BPE vocab trained (vocab=8000)" },
-                      { step: "3. Preprocess", desc: "Tokenization & sequence caching to binary files" },
-                      { step: "4. Training", desc: "BF16 Mixed Precision on single GPU with AdamW" },
-                      { step: "5. Checkpoints", desc: "Periodic metrics logging & weights export" },
-                      { step: "6. Evaluation", desc: "Validation loss + GPT-assisted qualitative checks" },
-                      { step: "7. Export", desc: "Save tokenizer config & model weights to HF Hub" },
-                    ].map((item, idx) => (
-                      <div key={item.step} className="flex-1 min-w-[120px] flex flex-col justify-between p-3 rounded border border-border bg-background relative text-center">
-                        {idx < 6 && (
-                          <span className="hidden md:block absolute -right-3.5 top-[40%] translate-y-[-50%] text-subtle text-xs z-10 font-bold">
-                            ➔
-                          </span>
-                        )}
-                        {idx < 6 && (
-                          <span className="block md:hidden absolute left-[50%] -bottom-4 translate-x-[-50%] text-subtle text-[10px] z-10 font-bold">
-                            ▼
-                          </span>
-                        )}
-                        <span className="text-xs font-semibold text-accent">{item.step}</span>
-                        <p className="text-[9px] text-muted-foreground mt-2 leading-relaxed">{item.desc}</p>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {project.id === "indian-legal-llm" && (
-                <section className="space-y-4">
-                  <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                    Iterative Post-Training & SFT Pipeline
-                  </h4>
-                  <div className="flex flex-col md:flex-row items-stretch justify-between gap-4 p-4 rounded-lg border border-border bg-surface-2/15 overflow-x-auto">
-                    {[
-                      { step: "1. Dataset Prep", desc: "Compile Indian legal provisions corpus (v2/v3)" },
-                      { step: "2. Formatter", desc: "Template strict instruction-response JSONL patterns" },
-                      { step: "3. Supervised SFT", desc: "BF16 instruction tuning on Qwen (0.5B/1.7B)" },
-                      { step: "4. Evaluation", desc: "Perplexity check + qualitative Q&A audit" },
-                      { step: "5. Failure Analysis", desc: "Verify statutory grounding & identify hallucinations" },
-                      { step: "6. Refinement", desc: "Re-edit dataset templates to prune verbosity bias" },
-                    ].map((item, idx) => (
-                      <div key={item.step} className="flex-1 min-w-[120px] flex flex-col justify-between p-3 rounded border border-border bg-background relative text-center">
-                        {idx < 5 && (
-                          <span className="hidden md:block absolute -right-3.5 top-[40%] translate-y-[-50%] text-subtle text-xs z-10 font-bold">
-                            ➔
-                          </span>
-                        )}
-                        {idx < 5 && (
-                          <span className="block md:hidden absolute left-[50%] -bottom-4 translate-x-[-50%] text-subtle text-[10px] z-10 font-bold">
-                            ▼
-                          </span>
-                        )}
-                        <span className="text-xs font-semibold text-accent">{item.step}</span>
-                        <p className="text-[9px] text-muted-foreground mt-2 leading-relaxed">{item.desc}</p>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {project.id === "mathinstruct-v1" && (
-                <section className="space-y-4">
-                  <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                    Post-Training SFT Pipeline
-                  </h4>
-                  <div className="flex flex-col md:flex-row items-stretch justify-between gap-4 p-4 rounded-lg border border-border bg-surface-2/15 overflow-x-auto">
-                    {[
-                      { step: "1. Pretrained Model", desc: "Start with Qwen3-0.6B baseline weights" },
-                      { step: "2. Math Dataset", desc: "Pool instruction sets from OpenMathInstruct-2" },
-                      { step: "3. Format Instructions", desc: "Construct instruction-response pairs" },
-                      { step: "4. Supervised Tuning", desc: "SFT train for 0.1 epoch on Qwen3 weights" },
-                      { step: "5. Evaluation", desc: "Verify step-by-step logic and token outputs" },
-                      { step: "6. Benchmark Compare", desc: "Evaluate accuracy gains against baseline model" },
-                    ].map((item, idx) => (
-                      <div key={item.step} className="flex-1 min-w-[120px] flex flex-col justify-between p-3 rounded border border-border bg-background relative text-center">
-                        {idx < 5 && (
-                          <span className="hidden md:block absolute -right-3.5 top-[40%] translate-y-[-50%] text-subtle text-xs z-10 font-bold">
-                            ➔
-                          </span>
-                        )}
-                        {idx < 5 && (
-                          <span className="block md:hidden absolute left-[50%] -bottom-4 translate-x-[-50%] text-subtle text-[10px] z-10 font-bold">
-                            ▼
-                          </span>
-                        )}
-                        <span className="text-xs font-semibold text-accent">{item.step}</span>
-                        <p className="text-[9px] text-muted-foreground mt-2 leading-relaxed">{item.desc}</p>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-
 
               {/* Model Comparison Table */}
               {project.modelComparison && (
@@ -572,9 +861,9 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
                 </section>
               )}
 
-              {/* Benchmark Image & Throughput Evolution (For TurboLLM system) */}
+              {/* Benchmark Image & Throughput Evolution (For TurboLLM system / MathInstruct) */}
               {project.benchmarkImage && (
-                <section className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-2">
+                <section className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-2 animate-fade-in">
                   {/* Left block: Graph */}
                   <div className="space-y-4">
                     <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
@@ -609,7 +898,7 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
                           return (
                             <div key={step.version} className="relative group">
                               {/* Timeline Dot */}
-                              <span className="absolute -left-[31px] top-1 h-2.5 w-2.5 rounded-full border-2 border-background bg-accent group-hover:scale-125 transition-transform" />
+                              <span className="absolute -left-[31px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-background bg-accent group-hover:scale-125 transition-transform" />
                               
                               <div className="flex items-center justify-between gap-3 text-xs">
                                 <div>
@@ -787,7 +1076,7 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
                     </section>
                   )}
 
-                  {/* Current Research Direction */}
+                  {/* Current Direction */}
                   {project.currentDirection && (
                     <section className="space-y-4">
                       <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
@@ -805,6 +1094,19 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
                   )}
 
                 </div>
+              )}
+
+              {/* Visualized logs / Terminal shell animation */}
+              {project.terminalLog && (
+                <section className="space-y-4">
+                  <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                    Runtime Session Output
+                  </h4>
+                  <InteractiveTerminal 
+                    command={project.id === "turbollm" ? "turbo-llm --model Qwen/Qwen3.6-35B-A3B-FP8 --prompt \"Who is Donald Trump?\"" : "python train.py --distill"} 
+                    logText={project.terminalLog} 
+                  />
+                </section>
               )}
 
               {/* Features & Challenges (For systems engineering projects) */}

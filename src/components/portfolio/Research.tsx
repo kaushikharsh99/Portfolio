@@ -1,5 +1,6 @@
+import * as React from "react";
 import { Reveal } from "./Reveal";
-import { CheckCircle2, BookOpen } from "lucide-react";
+import { CheckCircle2, BookOpen, Layers, Compass, Bookmark } from "lucide-react";
 
 const papers = [
   {
@@ -8,7 +9,11 @@ const papers = [
     topic: "Architecture",
     year: 2017,
     reproduced: true,
-    takeaway: "Introduced the multi-head self-attention mechanism, proving that parallelized tensor operations can fully replace recurrent models in language processing."
+    summary: "The seminal paper introducing the Transformer network, fully discarding recurrence and convolutions in favor of self-attention mechanics.",
+    contribution: "Replaced sequential recurrence with multi-head self-attention, allowing inputs to be processed in parallel and modeling long-range dependencies.",
+    takeaway: "Causal masking of attention weight matrices allows standard matrix operations to compute sequence probabilities simultaneously.",
+    influenced: "TinyStories-17M, Indian Legal LLM, MathInstruct v1",
+    status: "Completed study"
   },
   {
     title: "TinyStories: How Small Can Language Models Be?",
@@ -16,7 +21,11 @@ const papers = [
     topic: "Small LMs",
     year: 2023,
     reproduced: true,
-    takeaway: "Demonstrated that restricting dataset vocabulary and context (synthetically) allows models under 20M parameters to acquire fluent, grammatically perfect English."
+    summary: "Investigates whether small language models can generate fluent narratives when trained on synthetically constrained child-like data corpora.",
+    contribution: "Demonstrates that restricting vocabulary and grammatical complexity allows models under 20M parameters to acquire fluent English grammar.",
+    takeaway: "Data quality and corpus distribution density determine syntactic fluency far more than raw model parameter size.",
+    influenced: "TinyStories-17M pretraining",
+    status: "Completed study"
   },
   {
     title: "LoRA: Low-Rank Adaptation of Large Language Models",
@@ -24,7 +33,11 @@ const papers = [
     topic: "Adaptation",
     year: 2021,
     reproduced: true,
-    takeaway: "Proved that domain adaptation updates can be decomposed into low-rank matrices, reducing trainable parameter footprints by 10,000x without accuracy collapse."
+    summary: "Introduces parameter-efficient fine-tuning (PEFT) by freezing base weights and training decomposed low-rank matrices for domain adaptation.",
+    contribution: "Decomposes delta weight updates into low-rank multiplier matrices, shrinking SFT memory storage demands by 10,000x.",
+    takeaway: "Domain adaptation shifts occur in a low intrinsic parameter dimension, meaning we do not need to update or store full model matrices.",
+    influenced: "Indian Legal LLM, MathInstruct v1",
+    status: "Completed study"
   },
   {
     title: "DeepSeek-V3 Technical Report",
@@ -32,15 +45,23 @@ const papers = [
     topic: "MoE / Systems",
     year: 2024,
     reproduced: false,
-    takeaway: "Introduced Multi-Head Latent Attention (MLA) for key-value caching space savings, combined with auxiliary-loss-free load balancing in Mixture-of-Experts routing."
+    summary: "A comprehensive analysis of DeepSeek-V3's 671B Mixture-of-Experts architecture, MLA KV cache compression, and multi-node training stability.",
+    contribution: "Introduces Multi-head Latent Attention (MLA) and auxiliary-loss-free load balancing schemes for routing consistency.",
+    takeaway: "Decoupled latent projection vectors scale up attention representation while preserving low KV cache memory footprints during batch serving.",
+    influenced: "Turbo-LLM cache scheduler designs",
+    status: "Completed study"
   },
   {
-    title: "SmolLM2: Study of Data Mixture and Scaling for Small LMs",
+    title: "SmolLM2: Data Mixture and Scaling for Small LMs",
     authors: "Hugging Face",
     topic: "Small LMs",
     year: 2024,
     reproduced: false,
-    takeaway: "Analyzed optimal pretraining data mixture ratios across code, web scraps, and textbooks, establishing boundary capabilities for 1.7B parameter models."
+    summary: "Outlines training recipes and dataset curation mixtures used to build SmolLM2 models under 2B parameters.",
+    contribution: "Establishes dataset mixture parameters across code, web extracts, and textbooks to maximize downstream utility per parameter count.",
+    takeaway: "Refined synthetic textbook data acts as a reasoning multiplier, enabling sub-2B models to clear logical benchmarks.",
+    influenced: "TinyStories-17M dataset processing",
+    status: "Completed study"
   },
   {
     title: "Phi-1: Textbooks Are All You Need",
@@ -48,15 +69,23 @@ const papers = [
     topic: "Data Curation",
     year: 2023,
     reproduced: false,
-    takeaway: "Established that high-quality synthetic coding datasets ('textbook grade') yield massive logic gains in small language models, bypassing raw web scrap noise."
+    summary: "Explores SFT data engineering, using GPT-3.5 to compile synthetic textbook-quality code files to train small programming models.",
+    contribution: "Proves that textbook-grade target outputs boost coding logic faster than training on noisy internet code scrap collections.",
+    takeaway: "High semantic information density in training data reduces the parameter count required for logical reasoning tasks.",
+    influenced: "MathInstruct v1 data mixture reviews",
+    status: "Completed study"
   },
   {
-    title: "Phi-1.5: Q&A and Logical Reasoning on Small Models",
+    title: "Phi-1.5: Logical Reasoning on Small Models",
     authors: "Li et al.",
     topic: "Small LMs",
     year: 2023,
     reproduced: false,
-    takeaway: "Showed that models under 2B parameters can solve multi-step logical tasks when instructed with structured, reasoning-focused synthetic targets."
+    summary: "Expands textbook-style pretraining to non-code logical reasoning, training models under 2B parameters on synthetic textbooks.",
+    contribution: "Proves that small models can solve multi-step reasoning, QA, and logic tests when SFT datasets are clean.",
+    takeaway: "Multi-step reasoning capabilities emerge at small scales when trained on structured cause-and-effect instructional target pairs.",
+    influenced: "MathInstruct v1 training baseline configurations",
+    status: "Completed study"
   },
   {
     title: "Scaling Laws for Neural Language Models",
@@ -64,7 +93,11 @@ const papers = [
     topic: "Scaling Laws",
     year: 2020,
     reproduced: false,
-    takeaway: "Formulated the power-law relation between language model cross-entropy loss and three key variables: model parameter size, dataset scale, and compute compute bounds."
+    summary: "Empirically formulates scaling behaviors, proving that validation cross-entropy follows power laws over parameters, compute, and tokens.",
+    contribution: "Establishes that model performance depends primarily on parameter scale and data tokens, rather than architecture depth or width ratios.",
+    takeaway: "Validation performance improves predictably. We must balance compute budgets between parameter scales and token limits.",
+    influenced: "TinyStories-17M hyperparameter settings",
+    status: "Completed study"
   },
   {
     title: "Training Compute-Optimal Large Language Models",
@@ -72,15 +105,23 @@ const papers = [
     topic: "Scaling Laws",
     year: 2022,
     reproduced: false,
-    takeaway: "Formulated the Chinchilla scaling laws, showing that parameter count and token dataset count should scale at equal ratios to maximize validation gains."
+    summary: "Re-evaluates the Kaplan scaling laws, showing that parameter count and token dataset count should be scaled in equal proportions.",
+    contribution: "Formulates the Chinchilla scaling limits, proving that models are heavily undertrained relative to their compute allocation.",
+    takeaway: "Compute-optimal models require scaling dataset token size concurrently with model size (20 tokens per parameter).",
+    influenced: "TinyStories-17M tokens target sizing",
+    status: "Completed study"
   },
   {
-    title: "InstructGPT: Training LMs to Follow Instructions with Human Feedback",
+    title: "InstructGPT: Following Instructions with Human Feedback",
     authors: "Ouyang et al.",
     topic: "Alignment",
     year: 2022,
     reproduced: true,
-    takeaway: "Standardized supervised fine-tuning (SFT) combined with reinforcement learning (RLHF) to align raw text predictors to act as helpful, safe conversational assistants."
+    summary: "Details InstructGPT's post-training workflow, aligning foundation GPT models with user intent using SFT and RLHF.",
+    contribution: "Establishes alignment procedures using pairwise human comparisons to train reward models for PPO optimization loops.",
+    takeaway: "Pretraining learns token predictions; SFT and alignment procedures redirect model focus to act as helpful conversational agents.",
+    influenced: "Indian Legal LLM v2/v3 instruction datasets",
+    status: "Completed study"
   }
 ];
 
@@ -97,18 +138,20 @@ export function Research() {
               Research Diary
             </h2>
             <p className="mt-4 max-w-2xl text-muted-foreground text-sm leading-relaxed">
-              A record of the foundational literature I have studied. Selected papers have been completely reproduced as a way to internalize their core structural and training trade-offs.
+              A record of the foundational literature I have studied. Selected papers have been completely reproduced to internalize their core structural and training trade-offs. Hover over any card to reveal review details.
             </p>
           </div>
         </Reveal>
 
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
           {papers.map((p, i) => (
             <Reveal key={p.title} delay={i * 40}>
-              <div className="card-panel card-panel-hover p-6 flex flex-col justify-between h-full bg-surface-2/10 border border-border hover:border-accent/20 transition-all duration-300">
-                <div className="space-y-4">
-                  {/* Card Header metadata */}
-                  <div className="flex items-center justify-between gap-3 text-[10px] font-mono text-subtle select-none">
+              {/* Interactive Paper Card */}
+              <div className="group relative min-h-[290px] rounded-lg border border-border bg-surface-2/10 p-6 flex flex-col justify-between overflow-hidden hover:border-accent/35 hover:shadow-elevated transition-all duration-300 select-none">
+                
+                {/* Default Front View */}
+                <div className="space-y-4 group-hover:opacity-0 transition-opacity duration-300">
+                  <div className="flex items-center justify-between gap-3 text-[10px] font-mono text-subtle">
                     <span className="chip uppercase tracking-wider text-[9px]">{p.topic}</span>
                     <div className="flex items-center gap-2">
                       <span>{p.year}</span>
@@ -121,25 +164,57 @@ export function Research() {
                     </div>
                   </div>
 
-                  {/* Title & Author */}
                   <div>
                     <h3 className="text-base font-semibold leading-snug text-foreground tracking-tight group-hover:text-accent transition-colors">
                       {p.title}
                     </h3>
                     <p className="text-xs text-subtle mt-1 font-mono">{p.authors}</p>
                   </div>
+
+                  <div className="pt-4 border-t border-hairline flex items-center gap-1.5 text-[9px] font-mono uppercase tracking-widest text-accent">
+                    <BookOpen className="h-3 w-3" />
+                    Hover to read takeaways
+                  </div>
                 </div>
 
-                {/* Takeaway Block */}
-                <div className="mt-6 border-t border-hairline pt-4 space-y-2">
-                  <div className="flex items-center gap-1.5 text-[9px] font-mono uppercase tracking-widest text-accent">
-                    <BookOpen className="h-3 w-3" />
-                    Key Takeaway
+                {/* Hover Details Panel Overlay */}
+                <div className="absolute inset-0 p-6 bg-surface border-t-2 border-accent flex flex-col justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-y-auto space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center text-[9px] font-mono text-subtle border-b border-hairline pb-1.5">
+                      <span className="flex items-center gap-1">
+                        <Bookmark className="h-3 w-3 text-accent" />
+                        Status: <strong className="text-foreground">{p.status}</strong>
+                      </span>
+                      <span>{p.year}</span>
+                    </div>
+
+                    <p className="text-[11px] leading-relaxed text-muted-foreground">
+                      <strong className="text-foreground font-mono block text-[9px] uppercase tracking-wider mb-0.5">Summary</strong>
+                      {p.summary}
+                    </p>
+
+                    <p className="text-[11px] leading-relaxed text-muted-foreground">
+                      <strong className="text-foreground font-mono block text-[9px] uppercase tracking-wider mb-0.5">Key Contribution</strong>
+                      {p.contribution}
+                    </p>
+
+                    <div className="bg-background/40 p-2.5 rounded border border-hairline space-y-1">
+                      <span className="flex items-center gap-1 text-[8px] font-mono uppercase tracking-wider text-accent">
+                        <BookOpen className="h-2.5 w-2.5" />
+                        My Takeaway
+                      </span>
+                      <p className="text-[11px] italic font-light leading-relaxed text-foreground">
+                        "{p.takeaway}"
+                      </p>
+                    </div>
                   </div>
-                  <blockquote className="text-xs leading-relaxed text-muted-foreground italic font-light">
-                    "{p.takeaway}"
-                  </blockquote>
+
+                  <div className="text-[9px] font-mono text-subtle border-t border-hairline pt-2 flex items-center gap-1.5">
+                    <Layers className="h-3 w-3 text-accent-violet" />
+                    <span>Influenced: <strong>{p.influenced}</strong></span>
+                  </div>
                 </div>
+
               </div>
             </Reveal>
           ))}

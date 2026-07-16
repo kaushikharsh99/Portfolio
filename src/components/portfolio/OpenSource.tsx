@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Reveal } from "./Reveal";
 
 // Deterministic pseudo-contribution graph — no data fetching.
@@ -40,6 +41,14 @@ const repos = [
 ];
 
 export function OpenSource() {
+  const [activeTab, setActiveTab] = React.useState<"models" | "datasets" | "repos">("models");
+
+  const activeItems = React.useMemo(() => {
+    if (activeTab === "models") return models;
+    if (activeTab === "datasets") return datasets;
+    return repos;
+  }, [activeTab]);
+
   return (
     <section id="open-source" className="relative py-32">
       <div className="mx-auto max-w-6xl px-6">
@@ -96,27 +105,44 @@ export function OpenSource() {
             </div>
           </Reveal>
 
-          {/* Right panel: grouped artifacts */}
+          {/* Right panel: Tabbed artifacts list */}
           <Reveal delay={80}>
-            <div className="card-panel h-full p-6 space-y-6 overflow-hidden">
-              
-              {/* Models Section */}
-              <div className="space-y-2">
-                <h4 className="font-mono text-[10px] uppercase tracking-[0.15em] text-accent font-semibold select-none">
-                  Models
-                </h4>
-                <div className="space-y-2">
-                  {models.map((m) => (
+            <div className="card-panel h-full p-6 flex flex-col justify-between overflow-hidden">
+              <div>
+                {/* Tab Selectors */}
+                <div className="flex border-b border-hairline pb-2 mb-4 gap-4 select-none">
+                  {(["models", "datasets", "repos"] as const).map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      className={`text-mono text-[10px] uppercase tracking-wider pb-1 font-semibold border-b transition-all cursor-pointer ${
+                        activeTab === tab
+                          ? "border-accent text-accent"
+                          : "border-transparent text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Tab Items with Hover Reveals */}
+                <div className="space-y-2 min-h-[220px]">
+                  {activeItems.map((item) => (
                     <a
-                      key={m.name}
-                      href={m.href}
+                      key={item.name}
+                      href={item.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex items-center justify-between p-3 rounded border border-border bg-background/20 hover:bg-surface hover:border-accent/15 transition-all duration-200 cursor-pointer"
+                      className="group flex items-center justify-between p-3 rounded border border-border bg-background/20 hover:bg-surface hover:border-accent/15 transition-all duration-200 cursor-pointer animate-fade-in"
                     >
                       <div className="min-w-0 pr-2">
-                        <div className="text-xs font-semibold text-foreground truncate">{m.name}</div>
-                        <div className="text-[10px] font-mono text-subtle truncate mt-0.5">{m.meta}</div>
+                        <div className="text-xs font-semibold text-foreground group-hover:text-accent transition-colors truncate">
+                          {item.name}
+                        </div>
+                        <div className="text-[10px] font-mono text-subtle truncate mt-0.5 group-hover:text-muted-foreground transition-colors">
+                          {item.meta}
+                        </div>
                       </div>
                       <span className="text-mono text-xs text-muted-foreground transition-transform group-hover:translate-x-0.5 shrink-0">
                         ↗
@@ -126,58 +152,9 @@ export function OpenSource() {
                 </div>
               </div>
 
-              {/* Datasets Section */}
-              <div className="space-y-2">
-                <h4 className="font-mono text-[10px] uppercase tracking-[0.15em] text-accent font-semibold select-none">
-                  Datasets
-                </h4>
-                <div className="space-y-2">
-                  {datasets.map((d) => (
-                    <a
-                      key={d.name}
-                      href={d.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group flex items-center justify-between p-3 rounded border border-border bg-background/20 hover:bg-surface hover:border-accent/15 transition-all duration-200 cursor-pointer"
-                    >
-                      <div className="min-w-0 pr-2">
-                        <div className="text-xs font-semibold text-foreground truncate">{d.name}</div>
-                        <div className="text-[10px] font-mono text-subtle truncate mt-0.5">{d.meta}</div>
-                      </div>
-                      <span className="text-mono text-xs text-muted-foreground transition-transform group-hover:translate-x-0.5 shrink-0">
-                        ↗
-                      </span>
-                    </a>
-                  ))}
-                </div>
+              <div className="mt-4 border-t border-hairline pt-3 text-[10px] font-mono text-subtle text-right select-none">
+                {activeItems.length} active assets mapped
               </div>
-
-              {/* Repositories Section */}
-              <div className="space-y-2">
-                <h4 className="font-mono text-[10px] uppercase tracking-[0.15em] text-accent font-semibold select-none">
-                  Repositories
-                </h4>
-                <div className="space-y-2">
-                  {repos.map((r) => (
-                    <a
-                      key={r.name}
-                      href={r.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group flex items-center justify-between p-3 rounded border border-border bg-background/20 hover:bg-surface hover:border-accent/15 transition-all duration-200 cursor-pointer"
-                    >
-                      <div className="min-w-0 pr-2">
-                        <div className="text-xs font-semibold text-foreground truncate">{r.name}</div>
-                        <div className="text-[10px] font-mono text-subtle truncate mt-0.5">{r.meta}</div>
-                      </div>
-                      <span className="text-mono text-xs text-muted-foreground transition-transform group-hover:translate-x-0.5 shrink-0">
-                        ↗
-                      </span>
-                    </a>
-                  ))}
-                </div>
-              </div>
-
             </div>
           </Reveal>
         </div>
