@@ -54,7 +54,7 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
   };
 
 
-  const isResearchStyle = project.id === "tinystories-17m" || project.id === "indian-legal-llm";
+  const isResearchStyle = project.id === "tinystories-17m" || project.id === "indian-legal-llm" || project.id === "mathinstruct-v1";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-3 bg-black/70 backdrop-blur-md animate-in fade-in-0 duration-300">
@@ -441,6 +441,39 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
                       { step: "4. Evaluation", desc: "Perplexity check + qualitative Q&A audit" },
                       { step: "5. Failure Analysis", desc: "Verify statutory grounding & identify hallucinations" },
                       { step: "6. Refinement", desc: "Re-edit dataset templates to prune verbosity bias" },
+                    ].map((item, idx) => (
+                      <div key={item.step} className="flex-1 min-w-[120px] flex flex-col justify-between p-3 rounded border border-border bg-background relative text-center">
+                        {idx < 5 && (
+                          <span className="hidden md:block absolute -right-3.5 top-[40%] translate-y-[-50%] text-subtle text-xs z-10 font-bold">
+                            ➔
+                          </span>
+                        )}
+                        {idx < 5 && (
+                          <span className="block md:hidden absolute left-[50%] -bottom-4 translate-x-[-50%] text-subtle text-[10px] z-10 font-bold">
+                            ▼
+                          </span>
+                        )}
+                        <span className="text-xs font-semibold text-accent">{item.step}</span>
+                        <p className="text-[9px] text-muted-foreground mt-2 leading-relaxed">{item.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {project.id === "mathinstruct-v1" && (
+                <section className="space-y-4">
+                  <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                    Post-Training SFT Pipeline
+                  </h4>
+                  <div className="flex flex-col md:flex-row items-stretch justify-between gap-4 p-4 rounded-lg border border-border bg-surface-2/15 overflow-x-auto">
+                    {[
+                      { step: "1. Pretrained Model", desc: "Start with Qwen3-0.6B baseline weights" },
+                      { step: "2. Math Dataset", desc: "Pool instruction sets from OpenMathInstruct-2" },
+                      { step: "3. Format Instructions", desc: "Construct instruction-response pairs" },
+                      { step: "4. Supervised Tuning", desc: "SFT train for 0.1 epoch on Qwen3 weights" },
+                      { step: "5. Evaluation", desc: "Verify step-by-step logic and token outputs" },
+                      { step: "6. Benchmark Compare", desc: "Evaluate accuracy gains against baseline model" },
                     ].map((item, idx) => (
                       <div key={item.step} className="flex-1 min-w-[120px] flex flex-col justify-between p-3 rounded border border-border bg-background relative text-center">
                         {idx < 5 && (

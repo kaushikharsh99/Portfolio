@@ -54,7 +54,7 @@ export interface ProjectDetail {
   problemStatement: string;
   architectureDesc: string;
   architectureDiagram?: string; // HTML-safe ASCII diagram or schematic
-  technicalImplementation: string;
+  technicalImplementation?: string;
   keyFeatures: string[];
   challenges: string;
   solutions: string;
@@ -138,8 +138,6 @@ export const projectsData: ProjectDetail[] = [
                      ▼       ▼       ▼
                   [ SSD ] [ RAM ] [ VRAM ]
                   (Disk)  (Host)  (Device Cache)`,
-    technicalImplementation:
-      "The system core is built in Python, coordinating weight transfers and model layouts. It features a MemoryManager that registers every tensor metadata block. During a layer's forward execution, the manager queries whether the requested expert weight exists in GPUMemory. If absent, it loads the tensor from CPUMemory (RAM) or streams it directly from safetensors on SSD (Disk), dynamically handling VRAM evictions using an active caching policy.",
     keyFeatures: [
       "Dynamic expert streaming into GPU cache memory slots during active tokens routing",
       "SSD → RAM → VRAM hierarchical memory offloading caching layers",
@@ -164,40 +162,6 @@ export const projectsData: ProjectDetail[] = [
     ],
     futureWork:
       "Implement higher throughput scheduling, extend kernel optimizations for attention scaling, add multi-GPU split streaming profiles, and design more efficient expert caching algorithms.",
-    codeSnippet: {
-      language: "python",
-      filename: "memory_manager.py",
-      code: `def move_to_gpu(self, name: str) -> torch.Tensor:
-    """Moves a tensor from CPU to GPU memory cache. Handles GPU cache evictions."""
-    if name not in self.tensor_registry:
-        raise KeyError(f"Tensor '{name}' is not registered.")
-
-    tensor_obj = self.tensor_registry[name]
-
-    # Return GPU cached tensor if already resident
-    if self.gpu_memory.exists(name):
-        return self.gpu_memory.get(name)
-
-    # Load to CPU RAM first if not present
-    cpu_data = self.load_tensor(name)
-
-    # Copy data to GPU device
-    gpu_data = cpu_data.to(self.device_manager.device)
-
-    # Cache in GPU memory and handle evicted tensors
-    evicted_names = self.gpu_memory.add(name, gpu_data, tensor_obj)
-    for evicted in evicted_names:
-        evicted_obj = self.tensor_registry[evicted]
-        if self.cpu_memory.exists(evicted):
-            evicted_obj.device = "cpu"
-            evicted_obj.data = self.cpu_memory.get(evicted)
-        else:
-            evicted_obj.device = "disk"
-            evicted_obj.loaded = False
-            evicted_obj.data = None
-
-    return gpu_data`
-    },
     evolution: [
       { version: "Baseline", throughput: 0.11, description: "Naive layer streaming from disk" },
       { version: "Prefetch + Cache", throughput: 0.87, description: "Asynchronous prefetching & CPU cache pool" },
@@ -267,8 +231,6 @@ export const projectsData: ProjectDetail[] = [
 ┌────────────────────────────────────────────────────────┐
 │                   PROBABILITY DIST                     │
 └────────────────────────────────────────────────────────┘`,
-    technicalImplementation:
-      "I wrote the custom decoder layers in PyTorch using tensor operations. The tokenizer was trained on the synthetic TinyStories corpus using SentencePiece to produce an 8,000 token vocabulary. Training leveraged Mixed Precision (BF16) on a single GPU with gradient scaling to maintain stability during peak learning rates.",
     keyFeatures: [
       "SentencePiece BPE tokenizer optimized for child vocabulary subset",
       "Pre-LN architecture with RMSNorm layers for gradient stability",
@@ -291,21 +253,6 @@ export const projectsData: ProjectDetail[] = [
     ],
     futureWork:
       "Increase training dataset to 3.7M stories, run architecture experiments using Grouped-Query Attention (GQA), train for longer steps with larger effective batch sizes, and optimize tokenizer bounds.",
-    codeSnippet: {
-      language: "python",
-      filename: "model.py",
-      code: `@torch.compile
-class SwiGLU(nn.Module):
-    def __init__(self, dim: int, hidden_dim: int):
-        super().__init__()
-        self.w1 = nn.Linear(dim, hidden_dim, bias=False)
-        self.w2 = nn.Linear(hidden_dim, dim, bias=False)
-        self.w3 = nn.Linear(dim, hidden_dim, bias=False)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # Swish(x * W1) * (x * W3) projected through W2
-        return self.w2(F.silu(self.w1(x)) * self.w3(x))`
-    },
     generationExamples: [
       {
         prompt: "Once upon a time, there was a little girl named Lily. She loved to play in the garden with her toys. One day, she saw a big, beautiful butterfly.",
@@ -394,8 +341,6 @@ class SwiGLU(nn.Module):
            ┌─────────────────────────────────┐
            │        STUDENT MODEL (2M)       │ (Embeddings: 128d + Attention)
            └─────────────────────────────────┘`,
-    technicalImplementation:
-      "The system runs on PyTorch and Scikit-learn. The classical baseline uses TF-IDF word unigrams and bigrams. The teacher model is built with dense multi-layer residual paths, incorporating dropout and batch normalization. Distillation is coordinated using a custom loss module that combines Cross-Entropy with KL Divergence scaled by a temperature factor of 3.0. The student model uses self-attention layers to extract contextual representations from 128d word vectors, bounding its parameter footprint to 2M.",
     keyFeatures: [
       "Multi-class classification logic categorizing Ham, Spam, and Phish messages",
       "Knowledge Distillation pipeline using temperature-scaled KL Divergence loss",
@@ -420,34 +365,6 @@ class SwiGLU(nn.Module):
     ],
     futureWork:
       "Integrate character-level embeddings to improve robustness against obfuscated spelling or typo-based email bypasses, and package the distilled student model as a WebAssembly module for browser-native email scanning.",
-    codeSnippet: {
-      language: "python",
-      filename: "distill.py",
-      code: `import torch
-import torch.nn as nn
-import torch.nn.functional as F
-
-class DistillationLoss(nn.Module):
-    def __init__(self, temperature: float = 3.0, alpha: float = 0.5):
-        super().__init__()
-        self.temperature = temperature
-        self.alpha = alpha
-        self.cross_entropy = nn.CrossEntropyLoss()
-        
-    def forward(self, student_logits: torch.Tensor, teacher_logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
-        # Standard Cross-Entropy loss on true labels
-        student_loss = self.cross_entropy(student_logits, labels)
-        
-        # Soft label loss using KL Divergence
-        soft_student = F.log_softmax(student_logits / self.temperature, dim=-1)
-        soft_teacher = F.softmax(teacher_logits / self.temperature, dim=-1)
-        
-        # Multiply by temperature^2 to scale gradients properly
-        kl_loss = F.kl_div(soft_student, soft_teacher, reduction='batchmean') * (self.temperature ** 2)
-        
-        # Balanced loss combination
-        return (1.0 - self.alpha) * student_loss + self.alpha * kl_loss`
-    },
     trainingConfig: [
       { label: "Teacher Parameters", value: "~80 Million" },
       { label: "Student Parameters", value: "~2 Million" },
@@ -529,8 +446,6 @@ class DistillationLoss(nn.Module):
                      ▼           ▼
                [ V1 Model ] [ V2 Model ]
                  (0.5B)       (1.7B)`,
-    technicalImplementation:
-      "I wrote the SFT pre-training and alignment pipeline in PyTorch. The training sequences are structured as strict instruction-response JSONL packages. To stabilize the learning rates under high initial loss values, I configured AdamW optimization alongside a cosine learning rate scheduler. Evaluation was run continuously on validation sets using validation loss analysis and qualitative comparison runs.",
     keyFeatures: [
       "Instruction-tuned legal Q&A capability focused on Indian Penal Code (IPC)",
       "Structured formatting parser aligning outputs with statutory sections",
@@ -555,38 +470,6 @@ class DistillationLoss(nn.Module):
     ],
     futureWork:
       "Integrate Retrieval-Augmented Generation (RAG) to enforce strict document-grounded context verification, expand drafting templates, and run evaluations against legal benchmarks.",
-    codeSnippet: {
-      language: "python",
-      filename: "sft_train.py",
-      code: `import torch
-from transformers import TrainingArguments, Trainer
-
-# Configure Supervised Fine-Tuning args
-training_args = TrainingArguments(
-    output_dir="./legal_model_checkpoints",
-    learning_rate=2e-5,
-    per_device_train_batch_size=4,
-    gradient_accumulation_steps=8,
-    num_train_epochs=3,
-    weight_decay=0.01,
-    warmup_ratio=0.03,
-    lr_scheduler_type="cosine",
-    bf16=True,
-    logging_steps=10,
-    save_strategy="epoch",
-    evaluation_strategy="steps",
-    eval_steps=100
-)
-
-# Trainer instantiation mapping custom legal data collator
-trainer = Trainer(
-    model=model,
-    args=training_args,
-    train_dataset=tokenized_legal_dataset["train"],
-    eval_dataset=tokenized_legal_dataset["validation"],
-    data_collator=data_collator
-)`
-    },
     timeline: [
       { title: "Dataset V2", description: "Assembled initial ~171K samples focusing on statutory definitions and Q&A.", status: "completed" },
       { title: "Qwen 2.5 Fine-tuning", description: "Supervised fine-tuning of Qwen 2.5 (0.5B) model over 3 epochs.", status: "completed" },
@@ -631,5 +514,108 @@ trainer = Trainer(
       "Reducing speculative and interpretive phrases during SFT dataset preprocessing",
       "Establishing strict validation metrics targeting factual alignment over styling accuracy"
     ]
+  },
+  {
+    id: "mathinstruct-v1",
+    name: "MathInstruct v1",
+    status: "Completed",
+    tagline: "Supervised Fine-Tuning for Mathematical Reasoning",
+    description:
+      "MathInstruct v1 is a mathematics-focused instruction-tuned language model created by supervised fine-tuning Qwen3-0.6B on NVIDIA OpenMathInstruct-2 to improve mathematical instruction following, solution generation, and benchmark performance.",
+    stack: ["PyTorch", "Transformers", "Hugging Face", "Python", "Supervised Fine-Tuning"],
+    achievements: [
+      "Supervised fine-tuning Qwen3-0.6B on OpenMathInstruct-2 dataset",
+      "Completed training for 0.1 epoch to preserve general language capabilities",
+      "Improved mathematical solution generation and instruction following",
+    ],
+    githubUrl: "https://github.com/kaushikharsh99",
+    huggingfaceUrl: "https://huggingface.co/kaushik-harsh-99",
+    featured: true,
+    terminalLog: `$ python inference.py --model mathinstruct-v1 --prompt "Solve: 12x + 5 = 29"
+[init] loaded mathinstruct-v1 (Qwen3-0.6B-SFT)
+[eval] generating step-by-step reasoning chain...
+[output] Subtract 5 from both sides: 12x = 24. Divide by 12: x = 2.`,
+    motivation:
+      "Teaching compact language models mathematical reasoning is a core challenge in post-training alignment. While large models naturally acquire mathematical competence through vast pretraining scales, smaller models under 1B parameters struggle with multi-step calculations and intermediate reasoning paths. I developed MathInstruct v1 to study supervised fine-tuning (SFT) workflows on compact models, evaluating how structured math instruction datasets improve logical step generation without degrading generic language utility.",
+    problemStatement:
+      "Compact models like Qwen3-0.6B fail to sustain correct reasoning paths over multi-step algebra or arithmetic instructions. The parameters collapse into repetitive loops or output wrong equations. Training from scratch is computationally expensive. Therefore, we need an efficient SFT post-training workflow to align existing pretrained base weights specifically for math instruction following.",
+    architectureDesc:
+      "The project adapts Qwen3-0.6B (600M parameters) using a single-run Supervised Fine-Tuning (SFT) configuration. Instead of training across multiple epochs which risks catastrophic forgetting of the base model's general grammar, we trained the weights on the NVIDIA OpenMathInstruct-2 dataset for a brief 0.1 epoch. Model checkpoints are fully compatible with standard transformer layers.",
+    architectureDiagram: `┌────────────────────────────────────────────────────────┐
+│                   PRETRAINED BASE LLM                  │
+│                      (Qwen3-0.6B)                      │
+└──────────────────────────┬─────────────────────────────┘
+                           ▼
+             ┌───────────────────────────┐
+             │   OpenMathInstruct-2 Dataset│ (Instruction-Response Pairs)
+             └─────────────┬─────────────┘
+                           ▼
+             ┌───────────────────────────┐
+             │   Instruction Formatting  │ (Dense Math templates)
+             └─────────────┬─────────────┘
+                           ▼
+             ┌───────────────────────────┐
+             │  Supervised Fine-Tuning   │ (0.1 Epoch, preserved distribution)
+             └─────────────┬─────────────┘
+                           ▼
+             ┌───────────────────────────┐
+             │    MathInstruct v1 Check   │ (Unified math reasoning alignment)
+             └───────────────────────────┘`,
+    keyFeatures: [
+      "Aligned mathematical instruction following across diverse arithmetic topics",
+      "Supervised Fine-Tuning (SFT) pipeline targeting step-by-step solutions",
+      "Preservation of general-purpose language capacities via constrained 0.1 epoch run",
+      "Minimal preprocessing schema keeping the original dataset distribution intact",
+      "Standard PyTorch/Hugging Face transformers formatting for instant load support",
+    ],
+    challenges:
+      "Mathematical training risks causing the model to overfit on calculations and collapse on general conversation templates (catastrophic forgetting), especially when dealing with smaller parameter profiles.",
+    solutions:
+      "I limited the training duration strictly to 0.1 epoch and preserved the original dataset's formatting distribution. This lightweight exposure was sufficient to inject reasoning structures while maintaining general abilities.",
+    metrics: [
+      { value: "600M", label: "Parameters (Qwen3-0.6B)" },
+      { value: "0.1 Epoch", label: "Training Duration" },
+      { value: "OpenMath-2", label: "Fine-Tuning Dataset" },
+      { value: "SFT", label: "Alignment Protocol" },
+    ],
+    inspirations: [
+      { title: "NVIDIA OpenMathInstruct-2 Technical Report", link: "https://arxiv.org/abs/2410.01515" },
+      { title: "Qwen3 Open Foundation Models", link: "https://huggingface.co/Qwen" },
+    ],
+    futureWork:
+      "Integrate Direct Preference Optimization (DPO) using mathematical feedback pairs, run longer training epochs combined with general SFT data to prevent forgetting, and perform evaluations on MATH datasets.",
+    modelComparison: [
+      { name: "Qwen3-0.6B (Base Model)", accuracy: "Baseline", parameters: "600,000,000", purpose: "Pretrained generalist starting weights" },
+      { name: "MathInstruct v1 (Fine-Tuned)", accuracy: "Improved Math Q&A", parameters: "600,000,000", purpose: "Mathematics instruction following & step-by-step reasoning" }
+    ],
+    trainingConfig: [
+      { label: "SFT Protocol", value: "Supervised Fine-Tuning" },
+      { label: "Fine-Tuning Epoch", value: "0.1 Epoch" },
+      { label: "Dataset Source", value: "NVIDIA OpenMathInstruct-2" },
+      { label: "Base Architecture", value: "Qwen3-0.6B" },
+      { label: "Data Filtering", value: "None (original distribution preserved)" },
+      { label: "Preprocessing", value: "Minimal for formatting compatibility" }
+    ],
+    limitations: [
+      "May occasionally generate incorrect math steps or wrong arithmetic sums",
+      "Susceptibility to logical hallucinations in long-context problems",
+      "Not intended for high-stakes financial, scientific, or critical engineering applications",
+      "Limited factual grounding on non-mathematical topics due to small parameter scale"
+    ],
+    lessons: [
+      {
+        title: "Tuning is Data Efficient",
+        content: "We verified that even a brief 0.1 epoch SFT exposure aligns attention weights to output step-by-step calculations, proving domain tuning is highly efficient."
+      },
+      {
+        title: "Tradeoffs of Compact Tuning",
+        content: "Compact models (600M parameters) require very careful epoch bounds. Standard long SFT runs cause general syntax decay, making brief training runs essential."
+      },
+      {
+        title: "Noisy Data Tolerance",
+        content: "MathInstruct v1 was trained with minimal dataset filtering, demonstrating that models can tolerate a baseline rate of noisy distribution samples when learning formatting styles."
+      }
+    ],
+    benchmarkImage: "/math_benchmark.png"
   }
 ];
