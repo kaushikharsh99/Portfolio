@@ -34,39 +34,77 @@ export function Contact() {
           </h2>
         </Reveal>
 
-        <Reveal delay={80}>
-          <div className="mt-14 divide-y divide-hairline border-y border-hairline">
-            {links.map((l) => {
-              const isResume = l.label === "Resume";
-              const isEmail = l.label === "Email";
-              const IconComponent = l.icon;
-              return (
-                <a
-                  key={l.label}
-                  href={isResume ? "#" : l.href}
-                  target={isResume || isEmail ? undefined : "_blank"}
-                  rel={isResume || isEmail ? undefined : "noopener noreferrer"}
-                  onClick={(e) => {
-                    if (isResume) {
-                      e.preventDefault();
-                      openResume();
-                    }
-                  }}
-                  className="group grid grid-cols-[8rem_1fr_2rem] items-center gap-6 py-5 transition-colors hover:bg-surface sm:grid-cols-[12rem_1fr_2rem] cursor-pointer"
-                >
-                  <div className="flex items-center gap-2.5 text-mono text-xs uppercase tracking-[0.18em] text-subtle">
-                    <IconComponent className="h-4 w-4 shrink-0 text-accent" />
-                    <span>{l.label}</span>
-                  </div>
-                  <div className="truncate text-base text-foreground">{l.value}</div>
-                  <div className="justify-self-end text-mono text-sm text-muted-foreground transition-transform group-hover:translate-x-0.5">
-                    ↗
-                  </div>
-                </a>
-              );
-            })}
-          </div>
-        </Reveal>
+        <div className="mt-14 grid grid-cols-1 lg:grid-cols-2 gap-12">
+          
+          {/* Left Column: Research profile parameters */}
+          <Reveal delay={40}>
+            <div className="space-y-6">
+              <div className="border-b border-hairline pb-4">
+                <span className="font-mono text-[10px] uppercase tracking-wider text-accent font-semibold block mb-1">Research Interests</span>
+                <p className="text-sm text-foreground font-light leading-relaxed">
+                  Inference runtime optimization, Mixture-of-Experts (MoE) caching, hardware-software co-design, model compression, and post-training data alignment.
+                </p>
+              </div>
+              
+              <div className="border-b border-hairline pb-4">
+                <span className="font-mono text-[10px] uppercase tracking-wider text-accent font-semibold block mb-1">Currently Interested In</span>
+                <p className="text-sm text-foreground font-light leading-relaxed">
+                  Low-latency MoE offloading hierarchies, kernel optimization for attention scaling, and fact-grounded SFT data synthesis.
+                </p>
+              </div>
+
+              <div className="border-b border-hairline pb-4">
+                <span className="font-mono text-[10px] uppercase tracking-wider text-accent font-semibold block mb-1">Open To</span>
+                <p className="text-sm text-foreground font-light leading-relaxed">
+                  AI research engineer roles, systems residency programs, and open research collaborations on efficient models training.
+                </p>
+              </div>
+
+              <div className="pb-4">
+                <span className="font-mono text-[10px] uppercase tracking-wider text-accent font-semibold block mb-1">Availability</span>
+                <p className="text-sm text-foreground font-light leading-relaxed">
+                  Immediate (Remote / Hybrid / On-site).
+                </p>
+              </div>
+            </div>
+          </Reveal>
+
+          {/* Right Column: Dynamic Contact Links list */}
+          <Reveal delay={80}>
+            <div className="divide-y divide-hairline border-y border-hairline h-fit">
+              {links.map((l) => {
+                const isResume = l.label === "Resume";
+                const isEmail = l.label === "Email";
+                const IconComponent = l.icon;
+                return (
+                  <a
+                    key={l.label}
+                    href={isResume ? "#" : l.href}
+                    target={isResume || isEmail ? undefined : "_blank"}
+                    rel={isResume || isEmail ? undefined : "noopener noreferrer"}
+                    onClick={(e) => {
+                      if (isResume) {
+                        e.preventDefault();
+                        openResume();
+                      }
+                    }}
+                    className="group grid grid-cols-[8rem_1fr_2rem] items-center gap-6 py-5 transition-colors hover:bg-surface sm:grid-cols-[10rem_1fr_2rem] cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5 text-mono text-xs uppercase tracking-[0.18em] text-subtle">
+                      <IconComponent className="h-4 w-4 shrink-0 text-accent" />
+                      <span>{l.label}</span>
+                    </div>
+                    <div className="truncate text-sm text-foreground">{l.value}</div>
+                    <div className="justify-self-end text-mono text-sm text-muted-foreground transition-transform group-hover:translate-x-0.5">
+                      ↗
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          </Reveal>
+
+        </div>
       </div>
 
       <footer className="mx-auto mt-24 max-w-6xl px-6">

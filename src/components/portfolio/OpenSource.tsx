@@ -22,13 +22,21 @@ const shades = [
   "color-mix(in oklab, var(--accent) 90%, oklch(0.22 0.008 260))",
 ];
 
-const artifacts = [
-  { kind: "Model", name: "tinystories-17m", meta: "17.2M · decoder · fp16", href: "#" },
-  { kind: "Model", name: "turbo-instruct-1b", meta: "1B · SFT · Q4_K_M", href: "#" },
-  { kind: "Dataset", name: "instruct-mix-2m", meta: "2.1M examples · parquet", href: "#" },
-  { kind: "Dataset", name: "dedup-web-40m", meta: "40M docs · MinHash-LSH", href: "#" },
-  { kind: "Repo", name: "turbollm", meta: "C++ / CUDA · inference", href: "#" },
-  { kind: "Repo", name: "nano-decoder", meta: "PyTorch · pretraining", href: "#" },
+const models = [
+  { name: "TinyStories-17M", meta: "17.2M params · BF16 · custom decoder weights", href: "https://huggingface.co/kaushik-harsh-99" },
+  { name: "Qwen3-1.7B-Legal", meta: "1.7B params · GGUF · Indian law SFT (v2/v3)", href: "https://huggingface.co/kaushik-harsh-99" },
+  { name: "MathInstruct-v1", meta: "600M params · GGUF · Qwen3-0.6B mathematical SFT", href: "https://huggingface.co/kaushik-harsh-99" },
+];
+
+const datasets = [
+  { name: "Indian-legal-data-v3", meta: "194K instruction pairs · Drafting, IPC, QA · Parquet", href: "https://huggingface.co/datasets/kaushik-harsh-99/Indian-legal-data-v3" },
+  { name: "Indian-legal-data-v2", meta: "171K instruction pairs · IPC statutory Q&A · JSONL", href: "https://huggingface.co/datasets/kaushik-harsh-99/Indian-legal-data-v2" },
+];
+
+const repos = [
+  { name: "Turbo-LLM", meta: "Python/PyTorch · SSD-RAM-VRAM offloading pipeline", href: "https://github.com/kaushikharsh99/Turbo-LLM" },
+  { name: "TinyStories-17M", meta: "Python/PyTorch · pretraining decoder from scratch", href: "https://github.com/kaushikharsh99/TinyStories-17M" },
+  { name: "Spam-Detection-Model", meta: "Python/PyTorch · baseline SFT & teacher-student distillation", href: "https://github.com/kaushikharsh99/Spam-Detection-Model" },
 ];
 
 export function OpenSource() {
@@ -45,6 +53,7 @@ export function OpenSource() {
         </Reveal>
 
         <div className="mt-12 grid grid-cols-1 gap-5 lg:grid-cols-[1.1fr_1fr]">
+          {/* Left panel: contribution chart */}
           <Reveal>
             <div className="card-panel h-full p-7">
               <div className="flex items-center justify-between">
@@ -87,30 +96,88 @@ export function OpenSource() {
             </div>
           </Reveal>
 
+          {/* Right panel: grouped artifacts */}
           <Reveal delay={80}>
-            <div className="card-panel h-full divide-y divide-hairline">
-              {artifacts.map((a) => (
-                <a
-                  key={a.name}
-                  href={a.href}
-                  className="group flex items-center justify-between gap-4 p-5 transition-colors hover:bg-surface"
-                >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="chip">{a.kind}</span>
-                      <span className="truncate text-mono text-sm text-foreground">
-                        {a.name}
+            <div className="card-panel h-full p-6 space-y-6 overflow-hidden">
+              
+              {/* Models Section */}
+              <div className="space-y-2">
+                <h4 className="font-mono text-[10px] uppercase tracking-[0.15em] text-accent font-semibold select-none">
+                  Models
+                </h4>
+                <div className="space-y-2">
+                  {models.map((m) => (
+                    <a
+                      key={m.name}
+                      href={m.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-center justify-between p-3 rounded border border-border bg-background/20 hover:bg-surface hover:border-accent/15 transition-all duration-200 cursor-pointer"
+                    >
+                      <div className="min-w-0 pr-2">
+                        <div className="text-xs font-semibold text-foreground truncate">{m.name}</div>
+                        <div className="text-[10px] font-mono text-subtle truncate mt-0.5">{m.meta}</div>
+                      </div>
+                      <span className="text-mono text-xs text-muted-foreground transition-transform group-hover:translate-x-0.5 shrink-0">
+                        ↗
                       </span>
-                    </div>
-                    <div className="text-mono mt-1 truncate text-xs text-subtle">
-                      {a.meta}
-                    </div>
-                  </div>
-                  <span className="text-mono text-sm text-muted-foreground transition-transform group-hover:translate-x-0.5">
-                    ↗
-                  </span>
-                </a>
-              ))}
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              {/* Datasets Section */}
+              <div className="space-y-2">
+                <h4 className="font-mono text-[10px] uppercase tracking-[0.15em] text-accent font-semibold select-none">
+                  Datasets
+                </h4>
+                <div className="space-y-2">
+                  {datasets.map((d) => (
+                    <a
+                      key={d.name}
+                      href={d.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-center justify-between p-3 rounded border border-border bg-background/20 hover:bg-surface hover:border-accent/15 transition-all duration-200 cursor-pointer"
+                    >
+                      <div className="min-w-0 pr-2">
+                        <div className="text-xs font-semibold text-foreground truncate">{d.name}</div>
+                        <div className="text-[10px] font-mono text-subtle truncate mt-0.5">{d.meta}</div>
+                      </div>
+                      <span className="text-mono text-xs text-muted-foreground transition-transform group-hover:translate-x-0.5 shrink-0">
+                        ↗
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              {/* Repositories Section */}
+              <div className="space-y-2">
+                <h4 className="font-mono text-[10px] uppercase tracking-[0.15em] text-accent font-semibold select-none">
+                  Repositories
+                </h4>
+                <div className="space-y-2">
+                  {repos.map((r) => (
+                    <a
+                      key={r.name}
+                      href={r.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-center justify-between p-3 rounded border border-border bg-background/20 hover:bg-surface hover:border-accent/15 transition-all duration-200 cursor-pointer"
+                    >
+                      <div className="min-w-0 pr-2">
+                        <div className="text-xs font-semibold text-foreground truncate">{r.name}</div>
+                        <div className="text-[10px] font-mono text-subtle truncate mt-0.5">{r.meta}</div>
+                      </div>
+                      <span className="text-mono text-xs text-muted-foreground transition-transform group-hover:translate-x-0.5 shrink-0">
+                        ↗
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+
             </div>
           </Reveal>
         </div>
