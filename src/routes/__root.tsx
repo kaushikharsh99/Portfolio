@@ -13,6 +13,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ResumeModalProvider } from "@/components/portfolio/ResumeModalContext";
+import { Nav } from "@/components/portfolio/Nav";
 
 function NotFoundComponent() {
   return (
@@ -137,7 +138,10 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <ResumeModalProvider>
-        <Outlet />
+        <Nav />
+        <div className="pt-16 min-h-screen">
+          <Outlet />
+        </div>
       </ResumeModalProvider>
       <SpeedInsights />
     </QueryClientProvider>
