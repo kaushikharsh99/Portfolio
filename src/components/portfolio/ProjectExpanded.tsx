@@ -9,45 +9,8 @@ interface ProjectExpandedProps {
   onPrev: () => void;
 }
 
-// Custom simple syntax highlighter for code snippets
-function HighlightedCode({ code, language }: { code: string; language: string }) {
-  const keywords = language === "python"
-    ? /\b(def|class|import|from|return|if|else|for|while|try|except|as|in|is|not|and|or|None|True|False|self|with|@torch\.compile)\b/g
-    : /\b(void|int|double|float|char|bool|class|struct|template|typename|std|vector|return|if|else|for|while|throw|try|catch|const|auto|virtual|override|public|private|protected)\b/g;
-
-  const strings = /(["'`])(.*?)\1/g;
-  const comments = /(\/\/.*|#.*)/g;
-  const functions = /\b([a-zA-Z_]\w*)(?=\()/g;
-
-  const lines = code.split("\n");
-
-  return (
-    <pre className="font-mono text-[11px] leading-5 text-muted-foreground select-text overflow-x-auto p-4 bg-background/30 sm:text-xs w-full max-w-full">
-      {lines.map((line, i) => {
-        let html = line
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;");
-
-        // Syntax highlighting transformations
-        html = html.replace(comments, '<span class="text-subtle font-normal italic">$1</span>');
-        html = html.replace(keywords, '<span class="text-accent-violet font-medium">$1</span>');
-        html = html.replace(functions, '<span class="text-accent">$1</span>');
-        html = html.replace(strings, '<span class="text-green-500/80">$1$2$1</span>');
-
-        return (
-          <div key={i} className="flex items-start">
-            <span className="text-right pr-4 select-none opacity-30 text-[10px] w-6 shrink-0">{i + 1}</span>
-            <span className="whitespace-pre" dangerouslySetInnerHTML={{ __html: html || " " }} />
-          </div>
-        );
-      })}
-    </pre>
-  );
-}
 
 export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExpandedProps) {
-  const [copied, setCopied] = React.useState(false);
   const [expandedAsset, setExpandedAsset] = React.useState<"diagram" | "image" | null>(null);
 
   // Setup Back Button interception
@@ -90,13 +53,6 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
     }
   };
 
-  const copyCode = () => {
-    if (project.codeSnippet) {
-      navigator.clipboard.writeText(project.codeSnippet.code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
 
   const isResearchStyle = project.id === "tinystories-17m" || project.id === "indian-legal-llm";
 
@@ -505,41 +461,6 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
                 </section>
               )}
 
-              {/* Technical Implementation */}
-              <section className="space-y-4">
-                <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                  Technical Implementation
-                </h4>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {project.technicalImplementation}
-                </p>
-
-                {/* Code Snippet Box */}
-                {project.codeSnippet && (
-                  <div className="overflow-hidden rounded-lg border border-border-strong bg-surface">
-                    {/* IDE Top Bar */}
-                    <div className="flex items-center justify-between border-b border-border-strong bg-surface-2 px-4 py-2 select-none">
-                      <div className="flex items-center gap-1.5">
-                        <span className="h-2.5 w-2.5 rounded-full bg-border" />
-                        <span className="h-2.5 w-2.5 rounded-full bg-border" />
-                        <span className="h-2.5 w-2.5 rounded-full bg-border" />
-                        <span className="text-mono ml-2 text-[10px] text-muted-foreground">
-                          {project.codeSnippet.filename} ({project.codeSnippet.language})
-                        </span>
-                      </div>
-                      <button
-                        onClick={copyCode}
-                        className="inline-flex h-6 items-center gap-1 rounded border border-border px-2 text-[10px] font-mono text-muted-foreground hover:bg-elevated hover:text-foreground transition-colors cursor-pointer"
-                      >
-                        {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
-                        <span>{copied ? "Copied!" : "Copy"}</span>
-                      </button>
-                    </div>
-                    {/* IDE Code Panel */}
-                    <HighlightedCode code={project.codeSnippet.code} language={project.codeSnippet.language} />
-                  </div>
-                )}
-              </section>
 
               {/* Model Comparison Table */}
               {project.modelComparison && (
