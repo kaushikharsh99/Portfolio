@@ -6,7 +6,7 @@ export function Hero() {
   return (
     <section
       id="top"
-      className="relative isolate flex min-h-[92vh] items-center overflow-hidden pt-24"
+      className="relative isolate flex min-h-[96vh] items-center overflow-hidden pt-32 pb-24 md:pt-40 md:pb-36"
     >
       <AttentionBackdrop />
 
@@ -73,26 +73,6 @@ export function Hero() {
           >
             Resume
           </button>
-        </div>
-
-        {/* Signal strip */}
-        <div
-          className="mt-20 grid grid-cols-2 gap-x-8 gap-y-6 border-t border-hairline pt-8 text-mono text-xs sm:grid-cols-4 animate-reveal"
-          style={{ animationDelay: "440ms" }}
-        >
-          {[
-            ["17.2M", "params trained"],
-            ["2M+", "dataset examples"],
-            ["4×", "inference speedup"],
-            ["10+", "papers reproduced"],
-          ].map(([k, v]) => (
-            <div key={v}>
-              <div className="text-2xl font-medium text-foreground">{k}</div>
-              <div className="mt-1 text-[11px] uppercase tracking-[0.16em] text-subtle">
-                {v}
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     </section>
