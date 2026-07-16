@@ -101,11 +101,11 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
   const isResearchStyle = project.id === "tinystories-17m" || project.id === "indian-legal-llm";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-6 bg-black/70 backdrop-blur-md animate-in fade-in-0 duration-300">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-3 bg-black/70 backdrop-blur-md animate-in fade-in-0 duration-300">
       
       {/* Fullscreen Overlay Window */}
       <article 
-        className="relative flex h-full w-full max-w-6xl flex-col bg-background md:h-[90vh] md:rounded-2xl border border-border-strong shadow-elevated overflow-hidden animate-in zoom-in-98 duration-300 outline-none"
+        className="relative flex h-full w-full max-w-[96vw] flex-col bg-background md:h-[96vh] md:rounded-xl border border-border-strong shadow-elevated overflow-hidden animate-in zoom-in-98 duration-300 outline-none"
         role="dialog"
         aria-modal="true"
       >
