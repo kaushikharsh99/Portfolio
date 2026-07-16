@@ -1,6 +1,6 @@
 import * as React from "react";
 import { ProjectDetail } from "./projectData";
-import { X, ArrowLeft, ArrowRight, Github, ExternalLink, Cpu, Sparkles, CheckCircle2, ChevronRight, Copy, Check } from "lucide-react";
+import { X, ArrowLeft, ArrowRight, Github, ExternalLink, Cpu, Sparkles, CheckCircle2, ChevronRight, Copy, Check, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
 
 interface ProjectExpandedProps {
   project: ProjectDetail;
@@ -48,7 +48,7 @@ function HighlightedCode({ code, language }: { code: string; language: string })
 
 export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExpandedProps) {
   const [copied, setCopied] = React.useState(false);
-  const [isDiagramExpanded, setIsDiagramExpanded] = React.useState(false);
+  const [expandedAsset, setExpandedAsset] = React.useState<"diagram" | "image" | null>(null);
 
   // Setup Back Button interception
   React.useEffect(() => {
@@ -66,7 +66,11 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
     // Setup ESC Key listener
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        handleClose();
+        if (expandedAsset) {
+          setExpandedAsset(null);
+        } else {
+          handleClose();
+        }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -76,7 +80,7 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
       window.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
     };
-  }, [project.id]);
+  }, [project.id, expandedAsset]);
 
   const handleClose = () => {
     if (window.history.state?.projectOpen === project.id) {
@@ -217,6 +221,38 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
             </div>
           </section>
 
+          {/* PLATFORMS GRID (If available) */}
+          {project.platforms && (
+            <section className="space-y-4 pt-2">
+              <h3 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                Supported Platforms & Hardware Benchmarks
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {project.platforms.map((platform) => (
+                  <div key={platform.name} className="card-panel p-5 flex flex-col justify-between min-h-[140px] bg-surface-2/20">
+                    <div>
+                      <h4 className="text-sm font-semibold text-foreground">{platform.name}</h4>
+                      <p className="text-[10px] text-mono text-subtle mt-1 truncate" title={platform.model}>
+                        {platform.model}
+                      </p>
+                      <div className="mt-3 flex flex-wrap gap-1">
+                        {platform.specs.map(spec => (
+                          <span key={spec} className="text-[9px] font-mono px-2 py-0.5 border border-border bg-background rounded text-muted-foreground">
+                            {spec}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="mt-4 border-t border-hairline pt-3 flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Throughput:</span>
+                      <span className="font-mono font-bold text-accent">{platform.throughput}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* DUAL COLUMN CASE STUDY DATA */}
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-10">
             
@@ -257,7 +293,7 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
                 {project.architectureDiagram && (
                   <div className="relative">
                     <div 
-                      onClick={() => setIsDiagramExpanded(true)}
+                      onClick={() => setExpandedAsset("diagram")}
                       className="group relative cursor-zoom-in overflow-hidden rounded-lg border border-border bg-surface p-4 sm:p-6 font-mono text-[10px] sm:text-xs leading-5 text-muted-foreground select-none"
                     >
                       <pre className="overflow-x-auto whitespace-pre">
@@ -308,6 +344,71 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
                   </div>
                 )}
               </section>
+
+              {/* Benchmark Image & Throughput Evolution (If available) */}
+              {project.benchmarkImage && (
+                <section className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-2">
+                  {/* Left block: Graph */}
+                  <div className="space-y-4">
+                    <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                      Inference Benchmarks Chart
+                    </h4>
+                    <div 
+                      onClick={() => setExpandedAsset("image")}
+                      className="group relative cursor-zoom-in overflow-hidden rounded-lg border border-border bg-surface p-2"
+                    >
+                      <img 
+                        src={project.benchmarkImage} 
+                        alt="Performance Graph" 
+                        className="w-full h-auto object-contain rounded"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/45 transition-colors">
+                        <span className="rounded-md bg-background/95 px-3 py-1.5 text-xs text-foreground font-sans border border-border shadow opacity-0 group-hover:opacity-100 transition-opacity">
+                          Click to Expand Chart
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right block: Timeline */}
+                  {project.evolution && (
+                    <div className="space-y-4">
+                      <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                        Optimization Throughput Evolution
+                      </h4>
+                      <div className="relative border-l border-border-strong pl-6 ml-3 space-y-5 py-1">
+                        {project.evolution.map((step) => {
+                          const percent = (step.throughput / 2.30) * 100;
+                          return (
+                            <div key={step.version} className="relative group">
+                              {/* Timeline Dot */}
+                              <span className="absolute -left-[31px] top-1 h-2.5 w-2.5 rounded-full border-2 border-background bg-accent group-hover:scale-125 transition-transform" />
+                              
+                              <div className="flex items-center justify-between gap-3 text-xs">
+                                <div>
+                                  <h5 className="font-semibold text-foreground">{step.version}</h5>
+                                  {step.description && (
+                                    <p className="text-[10px] text-muted-foreground">{step.description}</p>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  {/* Mini Bar */}
+                                  <div className="w-16 h-1 bg-surface-2 rounded-full overflow-hidden hidden sm:block">
+                                    <div className="bg-accent h-full rounded-full" style={{ width: `${percent}%` }} />
+                                  </div>
+                                  <span className="font-mono font-semibold text-accent w-16 text-right">
+                                    {step.throughput.toFixed(2)} t/s
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </section>
+              )}
 
               {/* Features & Challenges */}
               <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -373,6 +474,23 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
                   ))}
                 </div>
               </div>
+
+              {/* Supported Models List */}
+              {project.id === "turbollm" && (
+                <div className="space-y-3">
+                  <h4 className="font-mono text-[10px] uppercase tracking-wider text-subtle">
+                    Supported Models
+                  </h4>
+                  <ul className="space-y-2 text-[10px] font-mono text-muted-foreground">
+                    <li className="p-2 border border-border bg-surface rounded truncate" title="Qwen/Qwen3-30B-A3B-Instruct-2507-FP8">
+                      Qwen3-30B-A3B-Instruct
+                    </li>
+                    <li className="p-2 border border-border bg-surface rounded truncate" title="Qwen/Qwen3.6-35B-A3B-FP8">
+                      Qwen3.6-35B-A3B-FP8
+                    </li>
+                  </ul>
+                </div>
+              )}
 
               {/* Inspirations / Papers */}
               <div className="space-y-3">
@@ -481,29 +599,48 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
         </div>
       </article>
 
-      {/* EXPANDED DIAGRAM MODAL */}
-      {isDiagramExpanded && project.architectureDiagram && (
+      {/* EXPANDED DIAGRAM OR IMAGE MAXIMIZER */}
+      {expandedAsset && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm animate-in fade-in-0 duration-200"
-          onClick={() => setIsDiagramExpanded(false)}
+          onClick={() => setExpandedAsset(null)}
         >
           <button 
-            className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center rounded-full bg-surface border border-border text-foreground hover:bg-elevated"
-            onClick={() => setIsDiagramExpanded(false)}
+            className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center rounded-full bg-surface border border-border text-foreground hover:bg-elevated cursor-pointer"
+            onClick={() => setExpandedAsset(null)}
           >
             <X className="h-5 w-5" />
           </button>
-          <div 
-            className="max-w-4xl w-full rounded-lg border border-border-strong bg-surface p-6 sm:p-10 font-mono text-xs sm:text-sm leading-6 text-foreground overflow-x-auto shadow-2xl select-text"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="font-mono text-[10px] text-subtle mb-4 pb-2 border-b border-hairline uppercase tracking-widest">
-              Architecture Layout — Zoomed
+          
+          {expandedAsset === "diagram" && project.architectureDiagram && (
+            <div 
+              className="max-w-4xl w-full rounded-lg border border-border-strong bg-surface p-6 sm:p-10 font-mono text-xs sm:text-sm leading-6 text-foreground overflow-x-auto shadow-2xl select-text"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="font-mono text-[10px] text-subtle mb-4 pb-2 border-b border-hairline uppercase tracking-widest">
+                Architecture Layout — Zoomed
+              </div>
+              <pre className="whitespace-pre">
+                {project.architectureDiagram}
+              </pre>
             </div>
-            <pre className="whitespace-pre">
-              {project.architectureDiagram}
-            </pre>
-          </div>
+          )}
+
+          {expandedAsset === "image" && project.benchmarkImage && (
+            <div 
+              className="max-w-4xl w-full rounded-lg border border-border-strong bg-surface p-4 shadow-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="font-mono text-[10px] text-subtle mb-3 pb-2 border-b border-hairline uppercase tracking-widest">
+                Benchmark Comparison — Zoomed
+              </div>
+              <img 
+                src={project.benchmarkImage} 
+                alt="Maximised Graph" 
+                className="w-full h-auto max-h-[80vh] object-contain rounded"
+              />
+            </div>
+          )}
         </div>
       )}
 

@@ -1,3 +1,16 @@
+export interface EvolutionStep {
+  version: string;
+  throughput: number;
+  description?: string;
+}
+
+export interface PlatformBenchmark {
+  name: string;
+  specs: string[];
+  throughput: string;
+  model: string;
+}
+
 export interface ProjectDetail {
   id: string;
   name: string;
@@ -29,108 +42,135 @@ export interface ProjectDetail {
     code: string;
     filename: string;
   };
+  
+  // Custom Visual Metrics
+  evolution?: EvolutionStep[];
+  platforms?: PlatformBenchmark[];
+  benchmarkImage?: string;
 }
 
 export const projectsData: ProjectDetail[] = [
   {
     id: "turbollm",
-    name: "TurboLLM",
+    name: "Turbo-LLM",
     status: "Ongoing",
-    tagline: "Efficient LLM inference on consumer GPUs",
+    tagline: "Fast Memory-Efficient Inference Engine for Large MoE Models",
     description:
-      "A research playground for pushing decoder throughput on a single consumer GPU. Explores paged KV cache, fused kernels, speculative decoding, and mixed-precision serving paths.",
-    stack: ["C++", "CUDA", "PyTorch", "vLLM", "Triton"],
+      "Turbo-LLM is an experimental inference engine designed to run very large Mixture-of-Experts language models under strict VRAM constraints using dynamic expert execution and adaptive memory management.",
+    stack: ["Python", "PyTorch", "CUDA", "C++", "Hugging Face"],
     achievements: [
-      "3.8× throughput vs. baseline HF pipeline at 4k context",
-      "Custom paged-KV allocator with < 3% memory overhead",
-      "End-to-end benchmark suite across 6 model families",
+      "🧠 Runs 35B MoE models on entry-level ~6 GB VRAM GPUs",
+      "🚀 ~21× performance speedup vs. baseline prototype",
+      "⚡ Reached 2.3 tok/s throughput on an NVIDIA RTX 3050 Laptop",
     ],
-    githubUrl: "https://github.com/kaushikharsh99",
+    githubUrl: "https://github.com/kaushikharsh99/Turbo-LLM",
     huggingfaceUrl: "https://huggingface.co/kaushik-harsh-99",
     featured: true,
-    terminalLog: `$ turbollm bench --model llama-3.1-8b --ctx 4096
-[init]  paged-kv: 96 blocks · 3.4 GB
-[load]  fp16 weights ..... 4.2 s
-[warm]  step 8/8 ......... 512 tok/s
-
-baseline (hf transformers)  ...  138 tok/s
-turbollm (paged + fused)    ...  527 tok/s
-speedup                      ...  3.82×
-
-memory / seq    ↓ 41%
-p50 latency     ↓ 63%
-p99 latency     ↓ 58%`,
+    terminalLog: `$ turbo-llm --model Qwen/Qwen3.6-35B-A3B-FP8 --prompt "Who is Donald Trump?" --max_new_tokens 512
+[init] loading Qwen3.6-35B-A3B-FP8 weights...
+[memory] hierarchical VRAM cache size: 5.4 GB
+[runtime] generation active (RTX 3050: 2.30 tok/s)`,
     motivation:
-      "Running large language models locally is heavily bottlenecked by GPU memory bandwidth. On consumer hardware (e.g., RTX 3090/4090), traditional serving frameworks waste massive memory capacity through pre-allocated static key-value (KV) block buffers, severely limiting maximum concurrent request batches. I built TurboLLM to experiment with advanced tensor layout, page table allocators, custom Triton fusion kernels, and speculative draft-target coordination to unlock enterprise-grade execution speeds locally.",
+      "Running large Mixture-of-Experts (MoE) language models locally is heavily bottlenecked by GPU memory bandwidth and capacity. On consumer hardware (e.g., 6 GB or 16 GB nodes), traditional inference engines require loading all weights into VRAM, making 30B+ parameters models impossible to run. Turbo-LLM exists to explore alternative execution patterns: shifting from static full-model residency in VRAM to dynamic, sequential offloading hierarchies to execute massive models locally on entry-level hardware.",
     problemStatement:
-      "Standard Hugging Face pipelines suffer from extreme memory fragmentation and static allocation. Because the size of the key-value memory grows proportionally with seq_len and batch size, standard configurations often trigger Out-Of-Memory (OOM) failures even when compute cores (Tensor Cores) are idling. A system was required that dynamically maps logical keys/values to non-contiguous physical pages while running fused kernels to minimize kernel launch overhead.",
+      "Traditional inference engines load the full model weights into VRAM, which requires far more memory than consumer GPUs provide. For instance, a 35B MoE model in FP8 requires almost 35 GB of VRAM, rendering it completely unrunnable on standard 6 GB consumer laptops. OS-level swapping or naive paging causes severe trashing and performance collapse down to 0.11 tokens/second.",
     architectureDesc:
-      "TurboLLM uses a dual-engine architecture: a lightweight Draft Engine runs a highly compressed model to generate speculative tokens, and a robust Target Engine verifies them in parallel. The underlying memory layers are controlled by a custom Virtual Paged Block Allocator.",
+      "Turbo-LLM uses a hierarchical offloading execution pipeline. Instead of storing the full model inside GPU VRAM, it manages a cache across SSD, CPU RAM (Host Memory), and GPU VRAM (Device Memory). Weights are streamed layer-by-layer: during the forward pass, only the active attention blocks and routed top-k experts are loaded dynamically into VRAM cache slots. Inactive experts are cached in host memory or evicted, and key-value (KV) states are tracked sequentially.",
     architectureDiagram: `┌────────────────────────────────────────────────────────┐
-│                     USER REQUEST                       │
+│                   INFERENCE REQUEST                    │
 └──────────────────────────┬─────────────────────────────┘
                            ▼
- ┌──────────────────────────────────────────────────────┐
- │                    DRAFT ENGINE                      │
- │   Generates K speculative tokens sequentially        │
- └─────────────────────────┬────────────────────────────┘
+             ┌───────────────────────────┐
+             │  Layer-by-Layer Streaming │
+             └─────────────┬─────────────┘
                            ▼
- ┌──────────────────────────────────────────────────────┐
- │                   TARGET ENGINE                      │
- │  Verifies speculative tokens in a single batch step  │
- └─────────────────────────┬────────────────────────────┘
-                           │ (Verify Match)
-                           ├──► Accepted Tokens ────► Output
-                           └──► Rejected Tokens ────► Rollback & Correct
-                                                      │
- ┌─────────────────────────▼──────────────────────────┐
- │               PAGED KV CACHE MANAGER               │
- │ [Logical Block Table] ──► [Physical Page Allocator] │
- └────────────────────────────────────────────────────┘`,
+             ┌───────────────────────────┐
+             │  Dynamic Expert Routing   │ (Top-K Active Selection)
+             └─────────────┬─────────────┘
+                           ▼
+             ┌───────────────────────────┐
+             │   Hierarchical Memory     │ (Weight Registry Coordinator)
+             │        Manager            │
+             └───────┬───────┬───────┬───┘
+                     │       │       │
+                     ▼       ▼       ▼
+                  [ SSD ] [ RAM ] [ VRAM ]
+                  (Disk)  (Host)  (Device Cache)`,
     technicalImplementation:
-      "The system core is built in C++ utilizing PyTorch's custom operators for bindings. It features a thread-safe Virtual Block Allocator that maps 16-token logical blocks to physical GPU memory addresses. Attention routing is handled via Triton kernels that fuse Rotary Position Embeddings (RoPE), key-value caching, and scale calculations into a single execution block, bypassing expensive intermediate global memory writes.",
+      "The system core is built in Python, coordinating weight transfers and model layouts. It features a MemoryManager that registers every tensor metadata block. During a layer's forward execution, the manager queries whether the requested expert weight exists in GPUMemory. If absent, it loads the tensor from CPUMemory (RAM) or streams it directly from safetensors on SSD (Disk), dynamically handling VRAM evictions using an active caching policy.",
     keyFeatures: [
-      "Dynamic Virtual Paged KV Cache with O(1) page-table resolution",
-      "Speculative verification module allowing draft-target model verification",
-      "Custom Triton FlashAttention-2 kernels optimized for irregular sequence lengths",
-      "CUDA stream overlapping to pre-fetch embeddings during token execution",
+      "Dynamic expert streaming into GPU cache memory slots during active tokens routing",
+      "SSD → RAM → VRAM hierarchical memory offloading caching layers",
+      "Sequential MoE execution bounding memory overhead during forward passes",
+      "Automatic Hugging Face model download and local model caching support",
+      "Interactive CLI with customizable YAML configuration override files",
+      "Benchmark logging mode to track token throughput and memory profiling statistics",
     ],
     challenges:
-      "The most complex challenge was synchronization latency: coordinating the draft and target models without blocking CUDA queue execution, which initially led to synchronization overheads eclipsing the performance gains of speculative steps.",
+      "The major bottleneck of this approach is the latency introduced by moving heavy expert weight tensors across the PCIe bus from host CPU RAM to GPU VRAM for every token generation step, resulting in a baseline throughput of just 0.11 tok/s.",
     solutions:
-      "I implemented a double-buffered queue where the draft model continuously generates speculation blocks into a ping-pong memory buffer. This allows the target engine to pull proposals without blocking the draft's execution queue, cutting synchronization overhead by 74%.",
+      "I implemented double buffering (Ping-Pong buffers) to hide transfer latency behind active calculations, asynchronous prefetching, warm caching for high-probability routed experts, and active parameter pinning in GPU memory to reduce allocation overheads, boosting speed to 2.3 tok/s.",
     metrics: [
-      { value: "3.82×", label: "Throughput speedup vs HF" },
-      { value: "↓ 41%", label: "Memory footprint reduction" },
-      { value: "↓ 63%", label: "p50 latency reduction" },
-      { value: "527 t/s", label: "Peak token throughput" },
+      { value: "35B MoE", label: "Model Scale Supported" },
+      { value: "~6 GB", label: "Peak VRAM Consumption" },
+      { value: "2.3 tok/s", label: "RTX 3050 Laptop Speed" },
+      { value: "~21.0×", label: "Throughput Gain vs Baseline" },
     ],
     inspirations: [
-      { title: "vLLM: Efficient Memory Management for LLM Serving", link: "https://arxiv.org/abs/2309.06180" },
-      { title: "Fast Inference from Transformers via Speculative Decoding", link: "https://arxiv.org/abs/2211.17180" },
+      { title: "AirLLM: Running 70B models on single consumer GPUs", link: "https://github.com/lm-sys/FastChat" },
+      { title: "Mixtral of Experts (MoE) Architecture Paper", link: "https://arxiv.org/abs/2401.04088" },
     ],
     futureWork:
-      "Integrate INT4 quantization for weight storage combined with FP16 inputs, and extend the serving path to support multi-GPU Tensor Parallelism using NCCL.",
+      "Implement higher throughput scheduling, extend kernel optimizations for attention scaling, add multi-GPU split streaming profiles, and design more efficient expert caching algorithms.",
     codeSnippet: {
-      language: "cpp",
-      filename: "cache_manager.cpp",
-      code: `// Virtual Block Allocator mapping logical blocks to GPU physical memory
-void PagedKVCache::allocate_blocks(int sequence_id, int num_tokens) {
-    std::lock_guard<std::mutex> lock(alloc_mutex_);
-    int blocks_needed = (num_tokens + block_size_ - 1) / block_size_;
-    
-    if (free_blocks_.size() < blocks_needed) {
-        throw std::runtime_error("CUDA Out of Memory: No physical blocks remaining in cache pool.");
-    }
-    
-    auto& seq_mapping = active_mappings_[sequence_id];
-    while (seq_mapping.size() < blocks_needed) {
-        int physical_block_id = free_blocks_.back();
-        free_blocks_.pop_back();
-        seq_mapping.push_back(physical_block_id);
-    }
-}`
-    }
+      language: "python",
+      filename: "memory_manager.py",
+      code: `def move_to_gpu(self, name: str) -> torch.Tensor:
+    """Moves a tensor from CPU to GPU memory cache. Handles GPU cache evictions."""
+    if name not in self.tensor_registry:
+        raise KeyError(f"Tensor '{name}' is not registered.")
+
+    tensor_obj = self.tensor_registry[name]
+
+    # Return GPU cached tensor if already resident
+    if self.gpu_memory.exists(name):
+        return self.gpu_memory.get(name)
+
+    # Load to CPU RAM first if not present
+    cpu_data = self.load_tensor(name)
+
+    # Copy data to GPU device
+    gpu_data = cpu_data.to(self.device_manager.device)
+
+    # Cache in GPU memory and handle evicted tensors
+    evicted_names = self.gpu_memory.add(name, gpu_data, tensor_obj)
+    for evicted in evicted_names:
+        evicted_obj = self.tensor_registry[evicted]
+        if self.cpu_memory.exists(evicted):
+            evicted_obj.device = "cpu"
+            evicted_obj.data = self.cpu_memory.get(evicted)
+        else:
+            evicted_obj.device = "disk"
+            evicted_obj.loaded = False
+            evicted_obj.data = None
+
+    return gpu_data`
+    },
+    evolution: [
+      { version: "Baseline", throughput: 0.11, description: "Naive layer streaming from disk" },
+      { version: "Prefetch + Cache", throughput: 0.87, description: "Asynchronous prefetching & CPU cache pool" },
+      { version: "Decode Optimization", throughput: 1.14, description: "Minimized CPU-GPU sync steps" },
+      { version: "Static Buffers", throughput: 1.33, description: "Persistent pre-allocated GPU buffers" },
+      { version: "Active Pinning", throughput: 1.82, description: "Pinning key attention parameters" },
+      { version: "Warm Cache", throughput: 1.92, description: "Expert routing bias warm cache" },
+      { version: "Current", throughput: 2.30, description: "Double-buffered execution pipeline" },
+    ],
+    platforms: [
+      { name: "NVIDIA RTX 3050 Laptop", specs: ["16 GB RAM", "6 GB VRAM"], throughput: "2.30 tok/s", model: "Qwen/Qwen3.6-35B-A3B-FP8" },
+      { name: "Intel ULTRA 7 CPU", specs: ["16 GB RAM", "No GPU (CPU-only)"], throughput: "0.42 tok/s", model: "Qwen/Qwen3-30B-A3B-Instruct-2507-FP8" },
+      { name: "Apple M4", specs: ["16 GB Unified Memory", "Apple Silicon"], throughput: "0.31 tok/s", model: "Qwen/Qwen3-30B-A3B-Instruct-2507-FP8" },
+    ],
+    benchmarkImage: "/benchmark.png",
   },
   {
     id: "tinystories-17m",
