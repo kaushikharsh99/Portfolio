@@ -80,9 +80,9 @@ export const projectsData: ProjectDetail[] = [
       "Turbo-LLM is an experimental inference engine designed to run very large Mixture-of-Experts language models under strict VRAM constraints using dynamic expert execution and adaptive memory management.",
     stack: ["Python", "PyTorch", "CUDA", "C++", "Hugging Face"],
     achievements: [
-      "🧠 Runs 35B MoE models on entry-level ~6 GB VRAM GPUs",
-      "🚀 ~21× performance speedup vs. baseline prototype",
-      "⚡ Reached 2.3 tok/s throughput on an NVIDIA RTX 3050 Laptop",
+      "Runs 35B MoE models on entry-level ~6 GB VRAM GPUs",
+      "~21× performance speedup vs. baseline prototype",
+      "Reached 2.3 tok/s throughput on an NVIDIA RTX 3050 Laptop",
     ],
     githubUrl: "https://github.com/kaushikharsh99/Turbo-LLM",
     huggingfaceUrl: "https://huggingface.co/kaushik-harsh-99",
@@ -202,9 +202,9 @@ export const projectsData: ProjectDetail[] = [
       "TinyStories-17M is a decoder-only Transformer trained entirely from scratch on 2.1 million TinyStories-style synthetic stories to explore how capable modern Small Language Models can become through high-quality data and efficient architecture.",
     stack: ["PyTorch", "SentencePiece", "Parquet", "Hugging Face", "Python"],
     achievements: [
-      "🧠 Trained a 17.2M parameter custom decoder-only Transformer from scratch",
-      "📚 Curated and processed 2.1M synthetic story data inputs with zero padding",
-      "📈 Achieved fluent grammar, dialogue syntax, and narrative coherence",
+      "Trained a 17.2M parameter custom decoder-only Transformer from scratch",
+      "Curated and processed 2.1M synthetic story data inputs with zero padding",
+      "Achieved fluent grammar, dialogue syntax, and narrative coherence",
     ],
     githubUrl: "https://github.com/kaushikharsh99/TinyStories-17M",
     huggingfaceUrl: "https://huggingface.co/kaushik-harsh-99",
@@ -326,196 +326,6 @@ class SwiGLU(nn.Module):
     ]
   },
   {
-    id: "llm-post-training",
-    name: "LLM Post-training",
-    status: "Research",
-    tagline: "SFT / LoRA / QLoRA across specialized domains",
-    description:
-      "Adapter-based fine-tuning experiments across math, code, and legal corpora. Focus on data mixture, LoRA rank/target module ablations, and eval alignment.",
-    stack: ["PyTorch", "PEFT", "TRL", "bitsandbytes"],
-    achievements: [
-      "LoRA/QLoRA sweeps across ranks 4–128",
-      "Domain-specialized checkpoints: math, code, legal",
-      "Eval harness spanning 8 downstream tasks",
-    ],
-    githubUrl: "https://github.com/kaushikharsh99",
-    huggingfaceUrl: "https://huggingface.co/kaushik-harsh-99",
-    motivation:
-      "Pretrained base models have vast knowledge but struggle with specific formats, logic structures, and domain jargon. Post-training (Supervised Fine-Tuning and Parameter-Efficient Fine-Tuning) is where models are sculpted for production tasks. I designed these experiments to ablate how rank (r) and target projection paths in LoRA affect general capabilities versus specialized domain accuracy.",
-    problemStatement:
-      "Catastrophic forgetting is the major risk when adapting models. Fine-tuning too aggressively on math or legal documents often erases basic language instruction adherence. I needed to build a data mixture framework that balances custom domain instructions with a baseline alignment dataset.",
-    architectureDesc:
-      "The system implements LoRA adapters injected directly into the Query, Key, Value, and Output projection matrices of the base transformer. In QLoRA configs, the base model is quantized to NormalFloat4 (NF4) and dynamically dequantized during runtime.",
-    architectureDiagram: `┌────────────────────────────────────────────────────────┐
-│                   TRANSFORMER INPUT                    │
-└──────────────────────────┬─────────────────────────────┘
-                           ▼
-               ┌───────────────────────┐
-               │    Base Model (NF4)   │
-               │   Frozen Parameters   │
-               └───────────┬───────────┘
-                           ├────────────────────────┐
-                           │ (Direct Output)        │ (Adapter Path)
-                           ▼                        ▼
-                           │                  ┌───────────┐
-                           │                  │  LoRA A   │
-                           │                  │ (r x d)   │
-                           │                  └─────┬─────┘
-                           │                        ▼
-                           │                  ┌───────────┐
-                           │                  │  LoRA B   │
-                           │                  │ (d x r)   │
-                           │                  └─────┬─────┘
-                           │                        │ (Scale factor)
-                           ▼                        ▼
-                       [  +  ]◄─────────────────────┘
-                           ▼
-┌────────────────────────────────────────────────────────┐
-│                  TRANSFORMER OUTPUT                    │
-└────────────────────────────────────────────────────────┘`,
-    technicalImplementation:
-      "Fine-tuning was conducted on 8B parameter foundations using PyTorch, PEFT, and bitsandbytes. I wrote scripts to automate LoRA target hyperparameter sweeps (ablation ranks: 8, 16, 32, 64, 128) across different linear attention modules (q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj) and integrated standard evaluations into the loop.",
-    keyFeatures: [
-      "Automated rank (r) and alpha (α) optimization scripts",
-      "Custom data pipeline supporting token-packing for zero-pad efficiency",
-      "Quantized NF4 adapter mapping with low degradation margins",
-      "Fully integrated task evaluations using Hugging Face LightEval",
-    ],
-    challenges:
-      "Fine-tuning models on domain-specific corpora occasionally caused gradient explosions due to sequence padding waste and high-loss outlier samples in specialized instruction sets.",
-    solutions:
-      "I implemented sample packing, concatenating multiple short instructions into a single 4096 sequence separated by EOS tokens, which reduced pad token count to 0. Outlier samples were pruned using sequence-level cross-entropy sorting.",
-    metrics: [
-      { value: "4-128", label: "LoRA Rank Range Sweep" },
-      { value: "8+", label: "Downstream Tasks Evals" },
-      { value: "↓ 70%", label: "VRAM Save with QLoRA" },
-      { value: "+14%", label: "Logic Score on Legal Eval" },
-    ],
-    inspirations: [
-      { title: "LoRA: Low-Rank Adaptation of Large Language Models", link: "https://arxiv.org/abs/2106.09685" },
-      { title: "QLoRA: Efficient Finetuning of Quantized LLMs", link: "https://arxiv.org/abs/2305.14314" },
-    ],
-    futureWork:
-      "Extend this post-training suite to incorporate Direct Preference Optimization (DPO) and ORPO pipelines directly in PyTorch.",
-    codeSnippet: {
-      language: "python",
-      filename: "finetune.py",
-      code: `from peft import LoraConfig, get_peft_model
-from transformers import AutoModelForCausalLM, BitsAndBytesConfig
-
-# Create highly memory-efficient QLoRA configuration
-bnb_config = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_quant_type="nf4",
-    bnb_4bit_use_double_quant=True,
-    bnb_4bit_compute_dtype=torch.bfloat16
-)
-
-model = AutoModelForCausalLM.from_pretrained(
-    "meta-llama/Meta-Llama-3-8B",
-    quantization_config=bnb_config,
-    device_map="auto"
-)
-
-lora_config = LoraConfig(
-    r=16,
-    lora_alpha=32,
-    target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
-    bias="none",
-    task_type="CAUSAL_LM"
-)
-model = get_peft_model(model, lora_config)`
-    }
-  },
-  {
-    id: "dataset-engineering",
-    name: "Dataset Engineering",
-    status: "Ongoing",
-    tagline: "Instruction data pipelines at scale",
-    description:
-      "Tooling for large-scale text preprocessing: cleaning, near-duplicate detection, quality filtering, and Parquet-native pipelines that stream from disk.",
-    stack: ["Python", "Parquet", "Multiprocessing", "MinHash"],
-    achievements: [
-      "MinHash-LSH deduplication over 40M docs",
-      "Streaming Parquet reader with backpressure",
-      "Instruction dataset builder with schema validation",
-    ],
-    githubUrl: "https://github.com/kaushikharsh99",
-    huggingfaceUrl: "https://huggingface.co/kaushik-harsh-99",
-    motivation:
-      "The quality of instruction data is the single most important factor for language model alignment. While deep learning researchers focus on model weights, the underlying data pipelines are often fragile, slow, and prone to memory overheads. I built this suite of Parquet-native tools to demonstrate that we can process and deduplicate tens of millions of documents on single workstations using parallelized hashing and streams.",
-    problemStatement:
-      "Processing text datasets larger than RAM capacity usually causes memory faults. Near-duplicate document detection (such as boilerplates or license terms) using standard nested-loop strings comparisons is computationally intractable at scale (O(N^2)).",
-    architectureDesc:
-      "The dataset engineering toolkit uses a stream-based multiprocessing pipeline. The pipeline streams chunks from Parquet archives on disk, computes document shingle signatures, resolves near-duplicates via MinHash Locality-Sensitive Hashing (LSH), and writes verified instruction packages back to disk.",
-    architectureDiagram: `┌────────────────────────────────────────────────────────┐
-│                   PARQUET DATA STREAMS                 │
-└──────────────────────────┬─────────────────────────────┘
-                           ▼
-             ┌──────────────────────────┐
-             │ Multiprocessing Reader   │  ◄─── Backpressure Feed
-             └─────────────┬────────────┘
-                           ▼
-             ┌──────────────────────────┐
-             │  MinHash Signature Gen   │  ◄─── 50 Hashes / Doc
-             └─────────────┬────────────┘
-                           ▼
-             ┌──────────────────────────┐
-             │ LSH Deduplication Table  │  ◄─── Bucket Collision Match
-             └─────────────┬────────────┘
-                           ▼
-             ┌──────────────────────────┐
-             │ Schema Validation Filter │  ◄─── Strict Json Types
-             └─────────────┬────────────┘
-                           ▼
-┌────────────────────────────────────────────────────────┐
-│                   CLEANSED PARQUET                     │
-└────────────────────────────────────────────────────────┘`,
-    technicalImplementation:
-      "The deduplication engine computes MinHash signatures (length 128) for 3-gram document shingles. These hashes are grouped into bands to resolve buckets using Locality-Sensitive Hashing. The CPU parallelization is managed via a custom multiprocessing worker pool with structured queues to handle backpressure and throttle disk reads.",
-    keyFeatures: [
-      "MinHash-LSH deduplication pipeline optimized for consumer multi-core CPUs",
-      "Memory-efficient streaming dataset builder bypassing full-RAM caching",
-      "Robust instruction validation layer checking token lengths and structure templates",
-      "Zero-copy serialization pipelines writing directly to parquet buffers",
-    ],
-    challenges:
-      "Managing Python's GIL (Global Interpreter Lock) and inter-process communication (IPC) overhead during large data transfers between queues was causing CPU core starvation.",
-    solutions:
-      "I refactored the pipeline to transfer raw byte buffers or NumPy signature arrays instead of Python string dictionaries. Workers serialize data at worker level, eliminating IPC bottlenecking and scaling throughput linearly with CPU cores.",
-    metrics: [
-      { value: "40M+", label: "Processed Documents" },
-      { value: "18.4GB", label: "RAM peak utilization" },
-      { value: "O(N)", label: "Deduplication complexity" },
-      { value: "15,000/s", label: "Document processing rate" },
-    ],
-    inspirations: [
-      { title: "Mining of Massive Datasets (Chapter 3)", link: "http://www.mmds.org/" },
-      { title: "C4 (Colossal Clean Crawled Corpus)", link: "https://arxiv.org/abs/1910.10683" },
-    ],
-    futureWork:
-      "Implement GPU-accelerated MinHash computation using CuPy to further scale deduplication limits.",
-    codeSnippet: {
-      language: "python",
-      filename: "dedup.py",
-      code: `import numpy as np
-from hashlib import sha1
-
-def make_minhash(shingles: list[str], num_perm: int = 128) -> np.ndarray:
-    # Deterministic generation of permutation hashes
-    # to avoid full O(N^2) comparison pass
-    min_hashes = np.full(num_perm, np.inf)
-    for shingle in shingles:
-        val = int(sha1(shingle.encode('utf-8')).hexdigest(), 16)
-        for i in range(num_perm):
-            # Compute mock permutation hash value
-            h = (val * (i + 1) + 12345) % 4294967291
-            if h < min_hashes[i]:
-                min_hashes[i] = h
-    return min_hashes`
-    }
-  },
-  {
     id: "spam-detection",
     name: "Spam Detection Model",
     status: "Completed",
@@ -524,9 +334,9 @@ def make_minhash(shingles: list[str], num_perm: int = 128) -> np.ndarray:
       "An end-to-end email classification system that explores multiple machine learning paradigms, progressing from TF-IDF baselines to deep neural networks and finally a lightweight distilled model for efficient deployment.",
     stack: ["Python", "PyTorch", "Scikit-learn", "NumPy", "Pandas"],
     achievements: [
-      "🎯 Multi-class email classification across Ham, Spam, and Phishing categories",
-      "📉 Compressed teacher model by 40× (80M to 2M params) via Knowledge Distillation",
-      "⚡ Maintained high accuracy (98.12% student vs 98.38% teacher) with low latency",
+      "Multi-class email classification across Ham, Spam, and Phishing categories",
+      "Compressed teacher model by 40× (80M to 2M params) via Knowledge Distillation",
+      "Maintained high accuracy (98.12% student vs 98.38% teacher) with low latency",
     ],
     githubUrl: "https://github.com/kaushikharsh99/Spam-Detection-Model",
     huggingfaceUrl: "https://huggingface.co/kaushik-harsh-99",

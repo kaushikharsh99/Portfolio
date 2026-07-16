@@ -22,7 +22,7 @@ function HighlightedCode({ code, language }: { code: string; language: string })
   const lines = code.split("\n");
 
   return (
-    <pre className="font-mono text-[11px] leading-5 text-muted-foreground select-text overflow-x-auto p-4 bg-background/30 sm:text-xs">
+    <pre className="font-mono text-[11px] leading-5 text-muted-foreground select-text overflow-x-auto p-4 bg-background/30 sm:text-xs w-full max-w-full">
       {lines.map((line, i) => {
         let html = line
           .replace(/&/g, "&amp;")
@@ -36,9 +36,9 @@ function HighlightedCode({ code, language }: { code: string; language: string })
         html = html.replace(strings, '<span class="text-green-500/80">$1$2$1</span>');
 
         return (
-          <div key={i} className="table-row">
-            <span className="table-cell text-right pr-4 select-none opacity-30 text-[10px] w-6">{i + 1}</span>
-            <span className="table-cell" dangerouslySetInnerHTML={{ __html: html || " " }} />
+          <div key={i} className="flex items-start">
+            <span className="text-right pr-4 select-none opacity-30 text-[10px] w-6 shrink-0">{i + 1}</span>
+            <span className="whitespace-pre" dangerouslySetInnerHTML={{ __html: html || " " }} />
           </div>
         );
       })}
@@ -254,10 +254,10 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
           )}
 
           {/* DUAL COLUMN CASE STUDY DATA */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-10">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-10 min-w-0">
             
             {/* Left Column - Main Details */}
-            <div className="space-y-12">
+            <div className="space-y-12 min-w-0 overflow-hidden">
               
               {/* RESEARCH BACKGROUND: For TinyStories-17M publication */}
               {project.id === "tinystories-17m" && (
