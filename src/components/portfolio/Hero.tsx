@@ -1,6 +1,8 @@
 import { AttentionBackdrop } from "./AttentionBackdrop";
+import { useResumeModal } from "./ResumeModalContext";
 
 export function Hero() {
+  const { open: openResume } = useResumeModal();
   return (
     <section
       id="top"
@@ -65,12 +67,12 @@ export function Hero() {
           >
             Hugging Face
           </a>
-          <a
-            href="#contact"
-            className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+          <button
+            onClick={openResume}
+            className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground cursor-pointer"
           >
             Resume
-          </a>
+          </button>
         </div>
 
         {/* Signal strip */}
