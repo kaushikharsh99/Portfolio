@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { FileText, Download, X, ExternalLink, Loader2 } from "lucide-react";
+import { FileText, Download, X, ExternalLink } from "lucide-react";
+import { PDFRenderer } from "./PDFRenderer";
 
 interface ResumeModalProps {
   isOpen: boolean;
@@ -9,15 +9,7 @@ interface ResumeModalProps {
 }
 
 export function ResumeModal({ isOpen, onClose }: ResumeModalProps) {
-  const [isLoading, setIsLoading] = React.useState(true);
   const pdfUrl = "/Harsh_Kaushik_Resume.pdf";
-
-  // Reset loading state when the modal opens
-  React.useEffect(() => {
-    if (isOpen) {
-      setIsLoading(true);
-    }
-  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -65,7 +57,7 @@ export function ResumeModal({ isOpen, onClose }: ResumeModalProps) {
             <a
               href={pdfUrl}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-surface text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
               title="Open in new tab"
             >
@@ -85,18 +77,7 @@ export function ResumeModal({ isOpen, onClose }: ResumeModalProps) {
 
         {/* Main PDF Content Area */}
         <div className="relative flex-1 bg-background overflow-hidden">
-          {isLoading && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/90 text-muted-foreground z-10">
-              <Loader2 className="h-8 w-8 animate-spin text-accent" />
-              <p className="font-mono text-xs tracking-wider">Loading PDF Viewer...</p>
-            </div>
-          )}
-          <iframe
-            src={`${pdfUrl}#toolbar=1`}
-            className="h-full w-full border-none bg-background"
-            onLoad={() => setIsLoading(false)}
-            title="Harsh Kaushik Resume PDF"
-          />
+          <PDFRenderer url={pdfUrl} />
         </div>
       </DialogContent>
     </Dialog>
