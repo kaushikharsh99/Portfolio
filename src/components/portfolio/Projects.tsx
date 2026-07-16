@@ -2,6 +2,82 @@ import * as React from "react";
 import { Reveal } from "./Reveal";
 import { projectsData, ProjectDetail } from "./projectData";
 import { ProjectExpanded } from "./ProjectExpanded";
+import { Cpu, Terminal, Settings } from "lucide-react";
+import { HuggingFaceIcon } from "./Contact";
+
+export function PythonIcon({ className }: { className?: string }) {
+  return (
+    <svg role="img" viewBox="0 0 24 24" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
+      <path d="M14.25.18a8.8 8.8 0 0 0-4.3 1.12C7.3 2.92 7.42 4.45 7.42 4.45h2.95v.42H6.04a2.92 2.92 0 0 0-2.92 2.92v2.5a2.92 2.92 0 0 0 2.92 2.92h1.25V11.5a3.33 3.33 0 0 1 3.33-3.33h4.58a3.33 3.33 0 0 0 3.33-3.33V1.26a1.1 1.1 0 0 0-1.1-1.08zM11.5 1.7a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2zM9.75 23.82a8.8 8.8 0 0 0 4.3-1.12c2.65-1.62 2.53-3.15 2.53-3.15h-2.95v-.42h4.33a2.92 2.92 0 0 0 2.92-2.92v-2.5a2.92 2.92 0 0 0-2.92-2.92h-1.25v1.67a3.33 3.33 0 0 1-3.33 3.33H8.75a3.33 3.33 0 0 0-3.33 3.33v3.58a1.1 1.1 0 0 0 1.1 1.08zm1.25-1.52a1.1 1.1 0 1 1 0-2.2 1.1 1.1 0 0 1 0 2.2z"/>
+    </svg>
+  );
+}
+
+export function PyTorchIcon({ className }: { className?: string }) {
+  return (
+    <svg role="img" viewBox="0 0 24 24" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 0L1.6 6.02v11.96L12 24l10.4-6.02V6.02L12 0zm0 18.25c-3.45 0-6.25-2.8-6.25-6.25S8.55 5.75 12 5.75s6.25 2.8 6.25 6.25-2.8 6.25-6.25 6.25z"/>
+    </svg>
+  );
+}
+
+export function TechChip({ tech, className = "" }: { tech: string; className?: string }) {
+  const t = tech.toLowerCase();
+  
+  if (t === "python") {
+    return (
+      <span className={`chip flex items-center gap-1.5 ${className}`}>
+        <PythonIcon className="h-3 w-3 shrink-0 text-accent" />
+        <span>{tech}</span>
+      </span>
+    );
+  }
+  if (t === "pytorch") {
+    return (
+      <span className={`chip flex items-center gap-1.5 ${className}`}>
+        <PyTorchIcon className="h-3 w-3 shrink-0 text-destructive/80" />
+        <span>{tech}</span>
+      </span>
+    );
+  }
+  if (t === "hugging face") {
+    return (
+      <span className={`chip flex items-center gap-1.5 ${className}`}>
+        <HuggingFaceIcon className="h-3 w-3 shrink-0 text-accent" />
+        <span>{tech}</span>
+      </span>
+    );
+  }
+  if (t === "cuda" || t === "c++") {
+    return (
+      <span className={`chip flex items-center gap-1.5 ${className}`}>
+        <Cpu className="h-3 w-3 shrink-0 text-accent-violet" />
+        <span>{tech}</span>
+      </span>
+    );
+  }
+  if (t === "transformers" || t === "scikit-learn") {
+    return (
+      <span className={`chip flex items-center gap-1.5 ${className}`}>
+        <Cpu className="h-3 w-3 shrink-0 text-muted-foreground" />
+        <span>{tech}</span>
+      </span>
+    );
+  }
+  if (t === "gguf") {
+    return (
+      <span className={`chip flex items-center gap-1.5 ${className}`}>
+        <Terminal className="h-3 w-3 shrink-0 text-accent" />
+        <span>{tech}</span>
+      </span>
+    );
+  }
+  return (
+    <span className={`chip ${className}`}>
+      {tech}
+    </span>
+  );
+}
 
 function StatusBadge({ status }: { status: ProjectDetail["status"] }) {
   const dot =
@@ -97,9 +173,7 @@ export function Projects() {
               <div>
                 <div className="mt-8 flex flex-wrap gap-2">
                   {featured.stack.map((s) => (
-                    <span key={s} className="chip">
-                      {s}
-                    </span>
+                    <TechChip key={s} tech={s} />
                   ))}
                 </div>
 
@@ -180,9 +254,7 @@ export function Projects() {
                 <div>
                   <div className="mt-5 flex flex-wrap gap-1.5">
                     {p.stack.map((s) => (
-                      <span key={s} className="chip">
-                        {s}
-                      </span>
+                      <TechChip key={s} tech={s} />
                     ))}
                   </div>
                   <div className="mt-6 flex flex-wrap gap-4 text-mono text-xs">

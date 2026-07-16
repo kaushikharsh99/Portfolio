@@ -1,5 +1,7 @@
 import { AttentionBackdrop } from "./AttentionBackdrop";
 import { useResumeModal } from "./ResumeModalContext";
+import { Github, FileText } from "lucide-react";
+import { HuggingFaceIcon } from "./Contact";
 
 export function Hero() {
   const { open: openResume } = useResumeModal();
@@ -55,23 +57,26 @@ export function Hero() {
             href="https://github.com/kaushikharsh99"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-md border border-border-strong px-4 py-2.5 text-sm text-foreground transition-colors hover:bg-elevated"
+            className="inline-flex items-center gap-2.5 rounded-md border border-border-strong px-4 py-2.5 text-sm text-foreground transition-colors hover:bg-elevated"
           >
-            GitHub
+            <Github className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <span>GitHub</span>
           </a>
           <a
             href="https://huggingface.co/kaushik-harsh-99"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-md border border-border-strong px-4 py-2.5 text-sm text-foreground transition-colors hover:bg-elevated"
+            className="inline-flex items-center gap-2.5 rounded-md border border-border-strong px-4 py-2.5 text-sm text-foreground transition-colors hover:bg-elevated"
           >
-            Hugging Face
+            <HuggingFaceIcon className="h-4 w-4 shrink-0 text-accent" />
+            <span>Hugging Face</span>
           </a>
           <button
             onClick={openResume}
-            className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground cursor-pointer"
+            className="inline-flex items-center gap-2.5 rounded-md border border-border px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground cursor-pointer"
           >
-            Resume
+            <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <span>Resume</span>
           </button>
         </div>
       </div>

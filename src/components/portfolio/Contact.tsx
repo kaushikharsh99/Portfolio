@@ -1,12 +1,21 @@
 import { Reveal } from "./Reveal";
 import { useResumeModal } from "./ResumeModalContext";
+import { Mail, Github, Linkedin, FileText } from "lucide-react";
+
+export function HuggingFaceIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm3.5 6a1.5 1.5 0 1 1-1.5 1.5A1.5 1.5 0 0 1 15.5 8zm-7 0a1.5 1.5 0 1 1-1.5 1.5A1.5 1.5 0 0 1 8.5 8zm7 8.5a4.5 4.5 0 0 1-7 0 1 1 0 0 1 1.4-1.4 2.5 2.5 0 0 0 4.2 0 1 1 0 0 1 1.4 1.4z" />
+    </svg>
+  );
+}
 
 const links = [
-  { label: "Email", value: "harshkaushik11000@gmail.com", href: "mailto:harshkaushik11000@gmail.com" },
-  { label: "GitHub", value: "github.com/kaushikharsh99", href: "https://github.com/kaushikharsh99" },
-  { label: "Hugging Face", value: "huggingface.co/kaushik-harsh-99", href: "https://huggingface.co/kaushik-harsh-99" },
-  { label: "LinkedIn", value: "linkedin.com/in/harsh-kaushik-95920b379", href: "https://www.linkedin.com/in/harsh-kaushik-95920b379/" },
-  { label: "Resume", value: "Harsh_Kaushik_Resume.pdf", href: "#" },
+  { label: "Email", value: "harshkaushik11000@gmail.com", href: "mailto:harshkaushik11000@gmail.com", icon: Mail },
+  { label: "GitHub", value: "github.com/kaushikharsh99", href: "https://github.com/kaushikharsh99", icon: Github },
+  { label: "Hugging Face", value: "huggingface.co/kaushik-harsh-99", href: "https://huggingface.co/kaushik-harsh-99", icon: HuggingFaceIcon },
+  { label: "LinkedIn", value: "linkedin.com/in/harsh-kaushik-95920b379", href: "https://www.linkedin.com/in/harsh-kaushik-95920b379/", icon: Linkedin },
+  { label: "Resume", value: "Harsh_Kaushik_Resume.pdf", href: "#", icon: FileText },
 ];
 
 export function Contact() {
@@ -30,6 +39,7 @@ export function Contact() {
             {links.map((l) => {
               const isResume = l.label === "Resume";
               const isEmail = l.label === "Email";
+              const IconComponent = l.icon;
               return (
                 <a
                   key={l.label}
@@ -42,10 +52,11 @@ export function Contact() {
                       openResume();
                     }
                   }}
-                  className="group grid grid-cols-[7rem_1fr_2rem] items-center gap-6 py-5 transition-colors hover:bg-surface sm:grid-cols-[10rem_1fr_2rem] cursor-pointer"
+                  className="group grid grid-cols-[8rem_1fr_2rem] items-center gap-6 py-5 transition-colors hover:bg-surface sm:grid-cols-[12rem_1fr_2rem] cursor-pointer"
                 >
-                  <div className="text-mono text-xs uppercase tracking-[0.18em] text-subtle">
-                    {l.label}
+                  <div className="flex items-center gap-2.5 text-mono text-xs uppercase tracking-[0.18em] text-subtle">
+                    <IconComponent className="h-4 w-4 shrink-0 text-accent" />
+                    <span>{l.label}</span>
                   </div>
                   <div className="truncate text-base text-foreground">{l.value}</div>
                   <div className="justify-self-end text-mono text-sm text-muted-foreground transition-transform group-hover:translate-x-0.5">

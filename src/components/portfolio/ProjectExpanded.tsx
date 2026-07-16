@@ -1,6 +1,7 @@
 import * as React from "react";
 import { ProjectDetail } from "./projectData";
 import { X, ArrowLeft, ArrowRight, Github, ExternalLink, Cpu, Sparkles, CheckCircle2, ChevronRight, Copy, Check } from "lucide-react";
+import { TechChip } from "./Projects";
 
 interface ProjectExpandedProps {
   project: ProjectDetail;
@@ -866,9 +867,7 @@ export function ProjectExpanded({ project, onClose, onNext, onPrev }: ProjectExp
                 </h4>
                 <div className="flex flex-wrap gap-1.5">
                   {project.stack.map((tech) => (
-                    <span key={tech} className="chip text-[11px]">
-                      {tech}
-                    </span>
+                    <TechChip key={tech} tech={tech} className="text-[11px]" />
                   ))}
                 </div>
               </div>
