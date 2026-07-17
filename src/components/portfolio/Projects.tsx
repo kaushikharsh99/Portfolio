@@ -2,7 +2,7 @@ import * as React from "react";
 import { Reveal } from "./Reveal";
 import { projectsData, ProjectDetail } from "./projectData";
 import { ProjectExpanded } from "./ProjectExpanded";
-import { Cpu, Terminal, Settings } from "lucide-react";
+import { Cpu, Terminal, Settings, ArrowRight } from "lucide-react";
 import { HuggingFaceIcon } from "./Contact";
 
 export function PythonIcon({ className }: { className?: string }) {
@@ -79,7 +79,7 @@ export function TechChip({ tech, className = "" }: { tech: string; className?: s
   );
 }
 
-function StatusBadge({ status }: { status: ProjectDetail["status"] }) {
+export function StatusBadge({ status }: { status: ProjectDetail["status"] }) {
   const dot =
     status === "Ongoing"
       ? "var(--accent)"
@@ -87,12 +87,20 @@ function StatusBadge({ status }: { status: ProjectDetail["status"] }) {
         ? "var(--accent-violet)"
         : "oklch(0.75 0.15 150)";
   return (
-    <span className="chip">
-      <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: dot }} />
+    <span className="chip font-mono text-[9px] uppercase tracking-wider">
+      <span className="inline-block h-1.5 w-1.5 rounded-full mr-1.5" style={{ background: dot }} />
       {status}
     </span>
   );
 }
+
+const accentFor: Record<string, string> = {
+  turbollm: "var(--accent)",
+  "tinystories-17m": "var(--accent-violet)",
+  "indian-legal-llm": "oklch(0.7 0.14 65)",
+  "mathinstruct-v1": "oklch(0.72 0.14 165)",
+  "spam-detection": "oklch(0.68 0.16 25)",
+};
 
 export function Projects() {
   const [activeProjectId, setActiveProjectId] = React.useState<string | null>(null);
@@ -115,8 +123,6 @@ export function Projects() {
     setActiveProjectId(projectsData[prevIndex].id);
   }, [activeProjectId]);
 
-  const [featured, ...rest] = projectsData;
-
   return (
     <section id="projects" className="relative py-32">
       <div className="mx-auto max-w-6xl px-6">
@@ -124,10 +130,10 @@ export function Projects() {
           <div className="flex items-end justify-between gap-6">
             <div>
               <div className="text-mono text-xs uppercase tracking-[0.2em] text-subtle">
-                § 02 — Featured work
+                § 02 — Case Studies
               </div>
               <h2 className="mt-4 text-3xl font-medium tracking-tight sm:text-4xl text-foreground">
-                Selected projects
+                Selected Projects
               </h2>
             </div>
             <div className="hidden text-mono text-xs text-subtle sm:block">
@@ -136,136 +142,70 @@ export function Projects() {
           </div>
         </Reveal>
 
-        {/* Featured card */}
-        <Reveal delay={80}>
-          <article 
-            onClick={() => setActiveProjectId(featured.id)}
-            className="group card-panel card-panel-hover mt-12 grid grid-cols-1 gap-0 overflow-hidden lg:grid-cols-[1.15fr_1fr] cursor-pointer hover:border-accent/30 hover:shadow-elevated"
-          >
-            <div className="p-8 sm:p-10 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-3">
-                  <StatusBadge status={featured.status} />
-                  <span className="text-mono text-[11px] uppercase tracking-[0.18em] text-subtle">
-                    Featured
-                  </span>
-                </div>
-                <h3 className="mt-6 text-3xl font-medium tracking-tight sm:text-4xl text-foreground group-hover:text-accent transition-colors">
-                  {featured.name}
-                </h3>
-                <p className="text-mono mt-2 text-sm text-muted-foreground">
-                  {featured.tagline}
-                </p>
-                <p className="mt-6 max-w-xl leading-relaxed text-muted-foreground">
-                  {featured.description}
-                </p>
+        {/* 2-Column Grid for all 5 projects */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
+          {projectsData.map((p, i) => {
+            const accent = accentFor[p.id] || "var(--accent)";
+            return (
+              <Reveal key={p.id} delay={i * 60}>
+                <article
+                  onClick={() => setActiveProjectId(p.id)}
+                  className="group card-panel card-panel-hover h-full p-8 cursor-pointer hover:border-accent/30 hover:shadow-elevated flex flex-col justify-between"
+                  style={{
+                    background: `radial-gradient(350px 180px at 90% 10%, color-mix(in oklab, ${accent} 7%, transparent), transparent 60%), color-mix(in oklab, var(--surface-2) 90%, transparent)`
+                  }}
+                >
+                  <div>
+                    {/* Header: Number in Accent color + Status Badge */}
+                    <div className="flex items-center justify-between">
+                      <span 
+                        className="text-mono text-xs font-bold tracking-wider"
+                        style={{ color: accent }}
+                      >
+                        0{i + 1}
+                      </span>
+                      <StatusBadge status={p.status} />
+                    </div>
 
-                <ul className="mt-8 space-y-2 text-sm">
-                  {featured.achievements.map((a) => (
-                    <li key={a} className="flex gap-3 text-foreground/90">
-                      <span className="text-mono mt-[2px] text-xs text-subtle">›</span>
-                      <span>{a}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                    <h3 className="mt-6 text-2xl font-semibold tracking-tight text-foreground group-hover:text-accent transition-colors">
+                      {p.name}
+                    </h3>
+                    <p className="text-mono mt-1 text-xs text-muted-foreground">
+                      {p.tagline}
+                    </p>
+                    <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                      {p.description}
+                    </p>
 
-              <div>
-                <div className="mt-8 flex flex-wrap gap-2">
-                  {featured.stack.map((s) => (
-                    <TechChip key={s} tech={s} />
-                  ))}
-                </div>
-
-                <div className="mt-10">
-                  <span className="group inline-flex items-center gap-2 rounded-md border border-border-strong px-4 py-2 text-sm text-foreground transition-colors hover:bg-elevated">
-                    Read Case Study
-                    <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Terminal / benchmark preview */}
-            <div
-              className="relative min-h-[320px] border-t border-hairline lg:border-l lg:border-t-0"
-              style={{
-                background:
-                  "radial-gradient(600px 300px at 80% 10%, color-mix(in oklab, var(--accent) 12%, transparent), transparent 60%), color-mix(in oklab, var(--surface-2) 90%, transparent)",
-              }}
-            >
-              <div className="p-6 sm:p-8">
-                <div className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-elevated" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-elevated" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-elevated" />
-                  <span className="text-mono ml-3 text-[11px] text-subtle">
-                    {featured.id} · bench.log
-                  </span>
-                </div>
-                {featured.terminalLog && (
-                  <pre className="text-mono mt-5 overflow-hidden text-[11px] sm:text-[12px] leading-6 text-muted-foreground">
-                    {featured.terminalLog}
-                  </pre>
-                )}
-                <div className="mt-6 flex items-center gap-2 text-mono text-[11px] text-subtle">
-                  <span className="inline-block h-1.5 w-1.5 animate-cursor rounded-full" style={{ background: "var(--accent)" }} />
-                  live · updated nightly
-                </div>
-              </div>
-            </div>
-          </article>
-        </Reveal>
-
-        {/* Secondary grid */}
-        <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2">
-          {rest.map((p, i) => (
-            <Reveal key={p.name} delay={i * 60}>
-              <article 
-                onClick={() => setActiveProjectId(p.id)}
-                className="group card-panel card-panel-hover h-full p-7 cursor-pointer hover:border-accent/30 hover:shadow-elevated flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-3">
-                    <StatusBadge status={p.status} />
-                    <span className="text-mono text-[11px] text-subtle">
-                      0{i + 2}
-                    </span>
+                    {/* Key Metrics inside card */}
+                    <div className="mt-6 grid grid-cols-2 gap-2">
+                      {p.metrics.slice(0, 2).map((m) => (
+                        <div key={m.label} className="p-3.5 rounded border border-hairline/80 bg-background/30">
+                          <div className="text-mono text-sm font-semibold text-foreground">{m.value}</div>
+                          <div className="text-mono text-[9px] text-subtle uppercase tracking-wider mt-0.5">{m.label}</div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <h3 className="mt-5 text-xl font-medium tracking-tight text-foreground group-hover:text-accent transition-colors">
-                    {p.name}
-                  </h3>
-                  <p className="text-mono mt-1 text-xs text-muted-foreground">
-                    {p.tagline}
-                  </p>
-                  <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-                    {p.description}
-                  </p>
-                  <ul className="mt-5 space-y-1.5 text-sm">
-                    {p.achievements.map((a) => (
-                      <li key={a} className="flex gap-2 text-foreground/85">
-                        <span className="text-mono mt-[2px] text-[11px] text-subtle">›</span>
-                        <span>{a}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                
-                <div>
-                  <div className="mt-5 flex flex-wrap gap-1.5">
-                    {p.stack.map((s) => (
-                      <TechChip key={s} tech={s} />
-                    ))}
+
+                  <div className="mt-8">
+                    {/* Tech Stack Chips */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {p.stack.slice(0, 4).map((s) => (
+                        <TechChip key={s} tech={s} className="text-[10px]" />
+                      ))}
+                    </div>
+
+                    {/* Action trigger */}
+                    <div className="mt-6 flex items-center gap-2 text-mono text-xs text-accent">
+                      Read Case Study
+                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                    </div>
                   </div>
-                  <div className="mt-6 flex flex-wrap gap-4 text-mono text-xs">
-                    <span className="text-muted-foreground group-hover:text-accent transition-colors flex items-center gap-1">
-                      Read Case Study ↗
-                    </span>
-                  </div>
-                </div>
-              </article>
-            </Reveal>
-          ))}
+                </article>
+              </Reveal>
+            );
+          })}
         </div>
       </div>
 
