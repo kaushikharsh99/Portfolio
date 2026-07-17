@@ -68,7 +68,7 @@ const accentFor: Record<string, string> = {
 };
 
 function CaseStudy() {
-  const { project } = Route.useLoaderData();
+  const { project } = Route.useLoaderData() as { project: ProjectDetail };
   const accent = accentFor[project.id] ?? "var(--accent)";
   const idx = projectsData.findIndex((p) => p.id === project.id);
   const prev = projectsData[(idx - 1 + projectsData.length) % projectsData.length];
