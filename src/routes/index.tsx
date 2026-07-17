@@ -4,6 +4,7 @@ import { Reveal } from "@/components/portfolio/Reveal";
 import { projectsData } from "@/components/portfolio/projectData";
 import { TechChip } from "@/components/portfolio/Projects";
 import { Cpu, Zap, Brain, ArrowRight } from "lucide-react";
+import { Expertise } from "@/components/portfolio/Expertise";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -208,12 +209,17 @@ function Index() {
 
       <div className="divider-x" />
 
+      {/* Technical Expertise */}
+      <Expertise />
+
+      <div className="divider-x" />
+
       {/* Currently researching */}
       <section className="py-28 mx-auto max-w-6xl px-6">
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-12">
           <Reveal>
             <div className="text-mono text-xs uppercase tracking-[0.2em] text-subtle">
-              § 03 — Currently researching
+              § 04 — Currently researching
             </div>
             <h3 className="mt-4 text-2xl font-medium tracking-tight">Open questions</h3>
             <p className="text-sm text-muted-foreground leading-relaxed mt-3">
@@ -267,7 +273,7 @@ function Index() {
         <div className="flex items-end justify-between mb-10">
           <Reveal>
             <div className="text-mono text-xs uppercase tracking-[0.2em] text-subtle">
-              § 04 — Recent open source
+              § 05 — Recent open source
             </div>
             <h3 className="mt-4 text-2xl font-medium tracking-tight">Published artifacts</h3>
           </Reveal>
@@ -328,7 +334,7 @@ function Index() {
         <Reveal>
           <div className="mx-auto max-w-2xl text-center">
             <div className="text-mono text-xs uppercase tracking-[0.2em] text-subtle">
-              § 05 — Contact
+              § 06 — Contact
             </div>
             <h3 className="mt-6 text-3xl font-medium tracking-tight sm:text-4xl">
               Open to research collaborations, residencies, and internships in LLM systems and
