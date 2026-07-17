@@ -1,3 +1,4 @@
+import * as React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Hero } from "@/components/portfolio/Hero";
 import { Reveal } from "@/components/portfolio/Reveal";
@@ -5,6 +6,7 @@ import { projectsData } from "@/components/portfolio/projectData";
 import { TechChip } from "@/components/portfolio/Projects";
 import { Cpu, Zap, Brain, ArrowRight } from "lucide-react";
 import { Expertise } from "@/components/portfolio/Expertise";
+import { ProjectExpanded } from "@/components/portfolio/ProjectExpanded";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -21,6 +23,26 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const [activeProjectId, setActiveProjectId] = React.useState<string | null>(null);
+
+  const activeProject = React.useMemo(() => {
+    return projectsData.find((p) => p.id === activeProjectId) || null;
+  }, [activeProjectId]);
+
+  const handleNext = React.useCallback(() => {
+    if (!activeProjectId) return;
+    const index = projectsData.findIndex((p) => p.id === activeProjectId);
+    const nextIndex = (index + 1) % projectsData.length;
+    setActiveProjectId(projectsData[nextIndex].id);
+  }, [activeProjectId]);
+
+  const handlePrev = React.useCallback(() => {
+    if (!activeProjectId) return;
+    const index = projectsData.findIndex((p) => p.id === activeProjectId);
+    const prevIndex = (index - 1 + projectsData.length) % projectsData.length;
+    setActiveProjectId(projectsData[prevIndex].id);
+  }, [activeProjectId]);
+
   const turboLLM = projectsData.find((p) => p.id === "turbollm")!;
   const tinyStories = projectsData.find((p) => p.id === "tinystories-17m")!;
 
@@ -41,10 +63,9 @@ function Index() {
         </Reveal>
 
         <Reveal delay={80}>
-          <Link
-            to="/projects/$slug"
-            params={{ slug: turboLLM.id }}
-            className="group mt-12 grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] gap-0 overflow-hidden card-panel card-panel-hover hover:border-accent/30 hover:shadow-elevated"
+          <div
+            onClick={() => setActiveProjectId(turboLLM.id)}
+            className="group mt-12 grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] gap-0 overflow-hidden card-panel card-panel-hover hover:border-accent/30 hover:shadow-elevated cursor-pointer"
           >
             <div className="p-8 sm:p-10 flex flex-col justify-between">
               <div>
@@ -122,7 +143,7 @@ function Index() {
                 </div>
               </div>
             </div>
-          </Link>
+          </div>
         </Reveal>
       </section>
 
@@ -140,10 +161,9 @@ function Index() {
         </Reveal>
 
         <Reveal delay={80}>
-          <Link
-            to="/projects/$slug"
-            params={{ slug: tinyStories.id }}
-            className="group mt-12 grid grid-cols-1 lg:grid-cols-[1fr_1.05fr] gap-0 overflow-hidden card-panel card-panel-hover hover:border-accent/30 hover:shadow-elevated"
+          <div
+            onClick={() => setActiveProjectId(tinyStories.id)}
+            className="group mt-12 grid grid-cols-1 lg:grid-cols-[1fr_1.05fr] gap-0 overflow-hidden card-panel card-panel-hover hover:border-accent/30 hover:shadow-elevated cursor-pointer"
           >
             {/* Architecture stack diagram */}
             <div
@@ -193,7 +213,7 @@ function Index() {
                 </div>
               </div>
             </div>
-          </Link>
+          </div>
         </Reveal>
 
         <div className="mt-10 text-center">
@@ -357,6 +377,15 @@ function Index() {
           </div>
         </Reveal>
       </section>
+
+      {activeProject && (
+        <ProjectExpanded
+          project={activeProject}
+          onClose={() => setActiveProjectId(null)}
+          onNext={handleNext}
+          onPrev={handlePrev}
+        />
+      )}
     </main>
   );
 }
