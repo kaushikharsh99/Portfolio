@@ -5,15 +5,16 @@ const links = [
   { to: "/projects", label: "Projects" },
   { to: "/research", label: "Research" },
   { to: "/open-source", label: "Open Source" },
+  { to: "/reading", label: "Reading" },
   { to: "/about", label: "About" },
-  { to: "/contact", label: "Contact" },
   { to: "/resume", label: "Resume" },
 ];
 
 export function Nav() {
   return (
-    <header className="fixed inset-x-0 top-0 z-40 border-b border-hairline backdrop-blur-md select-none"
-      style={{ background: "color-mix(in oklab, var(--background) 70%, transparent)" }}
+    <header
+      className="fixed inset-x-0 top-0 z-40 border-b border-hairline backdrop-blur-md select-none"
+      style={{ background: "color-mix(in oklab, var(--background) 72%, transparent)" }}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-4">
         <Link to="/" className="flex items-center gap-2 text-sm font-medium tracking-tight">
@@ -27,6 +28,7 @@ export function Nav() {
               to={l.to}
               activeProps={{ className: "text-accent font-medium" }}
               inactiveProps={{ className: "text-muted-foreground hover:text-foreground" }}
+              activeOptions={{ exact: l.to === "/" }}
               className="text-mono text-xs transition-colors"
             >
               {l.label}
