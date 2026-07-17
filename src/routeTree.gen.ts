@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ResumeRouteImport } from './routes/resume'
 import { Route as ResearchRouteImport } from './routes/research'
-import { Route as ReadingRouteImport } from './routes/reading'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as OpenSourceRouteImport } from './routes/open-source'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -27,11 +26,6 @@ const ResumeRoute = ResumeRouteImport.update({
 const ResearchRoute = ResearchRouteImport.update({
   id: '/research',
   path: '/research',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReadingRoute = ReadingRouteImport.update({
-  id: '/reading',
-  path: '/reading',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjectsRoute = ProjectsRouteImport.update({
@@ -71,7 +65,6 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/open-source': typeof OpenSourceRoute
   '/projects': typeof ProjectsRouteWithChildren
-  '/reading': typeof ReadingRoute
   '/research': typeof ResearchRoute
   '/resume': typeof ResumeRoute
   '/projects/$slug': typeof ProjectsSlugRoute
@@ -82,7 +75,6 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/open-source': typeof OpenSourceRoute
   '/projects': typeof ProjectsRouteWithChildren
-  '/reading': typeof ReadingRoute
   '/research': typeof ResearchRoute
   '/resume': typeof ResumeRoute
   '/projects/$slug': typeof ProjectsSlugRoute
@@ -94,7 +86,6 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/open-source': typeof OpenSourceRoute
   '/projects': typeof ProjectsRouteWithChildren
-  '/reading': typeof ReadingRoute
   '/research': typeof ResearchRoute
   '/resume': typeof ResumeRoute
   '/projects/$slug': typeof ProjectsSlugRoute
@@ -107,7 +98,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/open-source'
     | '/projects'
-    | '/reading'
     | '/research'
     | '/resume'
     | '/projects/$slug'
@@ -118,7 +108,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/open-source'
     | '/projects'
-    | '/reading'
     | '/research'
     | '/resume'
     | '/projects/$slug'
@@ -129,7 +118,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/open-source'
     | '/projects'
-    | '/reading'
     | '/research'
     | '/resume'
     | '/projects/$slug'
@@ -141,7 +129,6 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   OpenSourceRoute: typeof OpenSourceRoute
   ProjectsRoute: typeof ProjectsRouteWithChildren
-  ReadingRoute: typeof ReadingRoute
   ResearchRoute: typeof ResearchRoute
   ResumeRoute: typeof ResumeRoute
 }
@@ -160,13 +147,6 @@ declare module '@tanstack/react-router' {
       path: '/research'
       fullPath: '/research'
       preLoaderRoute: typeof ResearchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reading': {
-      id: '/reading'
-      path: '/reading'
-      fullPath: '/reading'
-      preLoaderRoute: typeof ReadingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/projects': {
@@ -232,7 +212,6 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   OpenSourceRoute: OpenSourceRoute,
   ProjectsRoute: ProjectsRouteWithChildren,
-  ReadingRoute: ReadingRoute,
   ResearchRoute: ResearchRoute,
   ResumeRoute: ResumeRoute,
 }
