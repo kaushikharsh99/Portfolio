@@ -103,8 +103,8 @@ function Index() {
                     </p>
 
                     {/* Key Metrics inside card */}
-                    <div className="mt-6 grid grid-cols-2 gap-2">
-                      {p.metrics.slice(0, 2).map((m) => (
+                    <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {p.metrics.slice(0, 4).map((m) => (
                         <div key={m.label} className="p-3.5 rounded border border-hairline/80 bg-background/30">
                           <div className="text-mono text-sm font-semibold text-foreground">{m.value}</div>
                           <div className="text-mono text-[9px] text-subtle uppercase tracking-wider mt-0.5">{m.label}</div>
